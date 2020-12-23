@@ -1,4 +1,4 @@
-#Welcome to the PixEdit Server Cloud API on GitHub!
+# Welcome to the PixEdit Server Cloud API on GitHub!
 
 Our API is hosted and documented on Azure. Please go to [PixEdit Cloud Developer Portal](https://pixeditservercloud.developer.azure-api.net/) for API documentation.
 
