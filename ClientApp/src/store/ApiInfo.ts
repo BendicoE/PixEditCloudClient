@@ -1,6 +1,7 @@
 import { Action, Reducer } from 'redux';
 import { AppThunkAction } from './';
 import axios from 'axios';
+import * as Globals from './Globals';
 
 // STATE
 
@@ -35,7 +36,7 @@ export const actionCreators = {
     requestApiInfo: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.apiInfo) {
-            const url = appState.globals.apiBaseUrl + '/';
+            const url = Globals.apiBaseUrl + '/';
             axios.get(url)
                 .then((response) => {
                     dispatch({ type: 'RECEIVE_API_INFO', apiInfo: { appName: response.data.appName, appVersion: response.data.appVersion, publishedDate: response.data.publishedDate, unavailable: false } });

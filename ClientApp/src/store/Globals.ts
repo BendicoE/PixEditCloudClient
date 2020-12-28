@@ -2,8 +2,10 @@
 import { AppThunkAction } from './';
 import axios from 'axios';
 
+export const apiBaseUrl: string = 'https://pixeditservercloud.azure-api.net';
+//export const apiBaseUrl: string = 'https://localhost:44321/convertpdf';
+
 export interface GlobalState {
-    apiBaseUrl: string;
     authToken: string;
 }
 
@@ -34,10 +36,10 @@ type KnownAction = SignedInAction | SignInFailedAction | SignedOutAction;
 // ACTION CREATORS
 
 export const actionCreators = {
-    signIn: (username, password, serialNo): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    signIn: (username: string, password: string, serialNo: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.globals) {
-            const url = appState.globals.apiBaseUrl + '/Authenticate';
+            const url = apiBaseUrl + '/Authenticate';
             axios.get(url, {
                 headers: {
                     'Authorization': 'Basic ' + btoa(username + '+' + serialNo + ':' + password)
@@ -60,9 +62,7 @@ export const actionCreators = {
 // REDUCER
 
 const unloadedState: GlobalState = {
-    //apiBaseUrl: 'https://localhost:44321/convertpdf',
-    apiBaseUrl: 'https://pixeditservercloud.azure-api.net',
-    authToken: null
+    authToken: ''
 };
 
 export const reducer: Reducer<GlobalState> = (state: GlobalState | undefined, incomingAction: Action): GlobalState => {
@@ -74,18 +74,15 @@ export const reducer: Reducer<GlobalState> = (state: GlobalState | undefined, in
     switch (action.type) {
         case 'SIGNED_IN':
             return {
-                apiBaseUrl: state.apiBaseUrl,
                 authToken: action.authToken
             };
         case 'SIGN_IN_FAILED':
             return {
-                apiBaseUrl: state.apiBaseUrl,
-                authToken: null
+                authToken: ''
             };
         case 'SIGNED_OUT':
             return {
-                apiBaseUrl: state.apiBaseUrl,
-                authToken: null
+                authToken: ''
             };
         default:
             return state;

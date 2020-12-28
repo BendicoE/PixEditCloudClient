@@ -19,11 +19,6 @@ class NavMenu extends React.PureComponent<GlobalProps, { isOpen: boolean }> {
     };
 
     public render() {
-        const ConvertItem = this.props.authToken ?
-            <NavItem>
-                <NavLink tag={Link} className="text-dark" to="/convert-document">Convert Document</NavLink>
-            </NavItem> : null;
-
         return (
              <header>
                 <Navbar className="navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" light>
@@ -35,10 +30,24 @@ class NavMenu extends React.PureComponent<GlobalProps, { isOpen: boolean }> {
                                 <NavItem>
                                     <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
                                 </NavItem>
-                                {ConvertItem}
-                                <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/sign-in">{!this.props.authToken ? 'Sign In' : 'Sign Out'}</NavLink>
-                                </NavItem>
+                                {
+                                    this.props.authToken ?
+                                        <NavItem>
+                                            <NavLink tag={Link} className="text-dark" to="/convert-document">Convert Document</NavLink>
+                                        </NavItem> : null
+                                }
+                                {
+                                    !this.props.authToken ?
+                                        <NavItem>
+                                            <NavLink tag={Link} className="text-dark" to="/sign-in">Sign In</NavLink>
+                                        </NavItem> : null
+                                }
+                                {
+                                    this.props.authToken ?
+                                        <NavItem>
+                                            <NavLink tag={Link} className="text-dark" to="/sign-out">Sign Out</NavLink>
+                                        </NavItem> : null
+                                }
                             </ul>
                         </Collapse>
                     </Container>

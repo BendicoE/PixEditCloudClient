@@ -5,6 +5,7 @@ import { History } from 'history';
 import { ApplicationState, reducers } from './';
 import { reducer as formReducer } from 'redux-form';
 import { persistStore, persistReducer, createTransform } from 'redux-persist';
+import { createFilter, createBlacklistFilter } from 'redux-persist-transform-filter';
 import storage from 'redux-persist/lib/storage';
 
 
@@ -15,10 +16,16 @@ export default function configureStore(history: History, initialState?: Applicat
         routerMiddleware(history)
     ];
 
+    const blacklistFilter = createBlacklistFilter(
+        'docProcess',
+        ['inputFile', 'outputFilename', 'downloadUrl', 'message']
+    );
+
      const persistConfig = {
-        key: 'root',
-        storage: storage,
-        //blacklist: ['docProcess']
+         key: 'root',
+         storage: storage,
+         whitelist: ['globals', 'docProcess'],
+         transforms: [blacklistFilter]
      }
 
     const rootReducer = combineReducers({
@@ -26,7 +33,7 @@ export default function configureStore(history: History, initialState?: Applicat
         form: formReducer,
         router: connectRouter(history)
     });
-
+ 
     const persistedReducer = persistReducer(persistConfig, rootReducer); // create a persisted reducer
 
     const enhancers = [];
@@ -41,7 +48,7 @@ export default function configureStore(history: History, initialState?: Applicat
         compose(applyMiddleware(...middleware), ...enhancers)
     );
 
-    const persistor = persistStore(store); // used to create the persisted store, persistor will be used in the next step
+    const persistor = persistStore(store);
 
     return { store, persistor };
 }

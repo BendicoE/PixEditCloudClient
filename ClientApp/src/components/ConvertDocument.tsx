@@ -1,18 +1,25 @@
 ﻿import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
-import { Field, reduxForm } from 'redux-form';
+import { Field, reduxForm, InjectedFormProps } from 'redux-form';
 import { ApplicationState } from '../store';
 import * as DocumentProcessStore from '../store/DocumentProcess';
+import { Input } from 'reactstrap';
 
 type ConvertDocumentProps =
     DocumentProcessStore.DocumentProcessState
     & typeof DocumentProcessStore.actionCreators
     & RouteComponentProps<{}>;
 
+interface ConvertDocumentValues {
+    file: File;
+    outputFormat: string;
+    doOcr: boolean;
+}
+
 // COMPONENT
 
-class ConvertDocument extends React.PureComponent<ConvertDocumentProps> {
+class ConvertDocument extends React.PureComponent<ConvertDocumentProps & InjectedFormProps<ConvertDocumentValues, ConvertDocumentProps>> {
     public render() {
         const { handleSubmit } = this.props;
         return (
@@ -35,27 +42,20 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps> {
                                     <button type='submit' className='btn btn-outline-primary'>Convert</button>
                                 </div>
                             </div>
-                            <div className='input-group mb-3  col-sm-3'>
+                            <div className='input-group mb-3 col-sm-3'>
                                 <Field
                                     name='outputFormat'
-                                    component='select'
-                                    className='custom-select'>
-                                    <option value='pdfa1b'>PDF/A-1b</option>
-                                    <option value='pdfa2b'>PDF/A-2b</option>
-                                    <option value='pdfa3b'>PDF/A-3b</option>
-                                    <option value='pdf'>PDF</option>
-                                </Field>
+                                    component={this.renderSelectOutputFormat}
+                                />
                             </div>
                             <div className='input-group mb-3 col-sm-3'>
                                 <div className='custom-control custom-checkbox'>
                                     <Field
-                                        id='inputOcr'
                                         name='doOcr'
-                                        component='input'
+                                        component={this.renderCheckDoOcr}
                                         type='checkbox'
                                         className='custom-control-input'
                                     />
-                                    <label className='custom-control-label' htmlFor='inputOcr'>Recognize Text</label>
                                 </div>
                             </div>
                         </div>
@@ -71,7 +71,7 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps> {
         );
     }
 
-    renderInputFile = ({ input, type, meta }) => {
+    renderInputFile = ({ input, type }: { input: HTMLInputElement, type: string }) => {
         return (
             <div>
                 <input
@@ -81,40 +81,81 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps> {
                     accept='application/pdf, application/zip, image/tiff, image/jpeg, image/png, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, \
                             application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation \
                             application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook '
-                    onChange={event => this.handleChange(event, input)}
+                    onChange={event => this.handleInputFileChange(event)}
                 />
             </div>
         );
     };
 
-    handleChange = (event, input) => {
+    handleInputFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
-        let selectedFile = event.target.files[0];
-        if (selectedFile) {
-            this.props.selectFile(selectedFile.name, selectedFile.type, selectedFile);
+        if (event.target && event.target.files) {
+            let selectedFile = event.target.files[0];
+            if (selectedFile) {
+                this.props.selectFile(selectedFile.name, selectedFile.type, selectedFile);
+            }
         }
     };
 
-    private processDocument(outputFormat, doOcr) {
-        this.props.processDocument(outputFormat, doOcr);
-    }
+    renderSelectOutputFormat = ({ input }: { input: HTMLSelectElement }) => {
+        return (
+            <select
+                id='selectOutputFormat'
+                name={input.name}
+                className='custom-select'
+                onChange={event => this.handleOutputFormatChange(event)}
+            >
+                <option value='pdfa1b'>PDF/A-1b</option>
+                <option value='pdfa2b'>PDF/A-2b</option>
+                <option value='pdfa3b'>PDF/A-3b</option>
+                <option value='pdf'>PDF</option>
+            </select>
+        );
+    };
 
-    onFormSubmit = (formValues) => {
-        this.processDocument(formValues.outputFormat, formValues.doOcr);
+    handleOutputFormatChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        if (event.target && event.target.value) {
+            this.props.selectOutputFormat(event.target.value);
+        }
+    };
+
+    renderCheckDoOcr = ({ input, type }: { input: HTMLInputElement, type: string }) => {
+        return (
+            <div>
+                <input
+                    id='checkDoOcr'
+                    name={input.name}
+                    type={type}
+                    className='custom-control-input'
+                    onChange={event => this.handleDoOcrChange(event)}
+                />
+                <label className='custom-control-label' htmlFor='checkDoOcr'>Recognize Text</label>
+            </div>
+        );
+    };
+
+    handleDoOcrChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target) {
+            this.props.selectDoOcr(event.target.checked);
+        }
+    };
+
+    onFormSubmit = () => {
+        this.props.processDocument();
     };
 
 }
 
 function mapStateToProps(state: ApplicationState) {
     return {
-        inputFilename: state.docProcess.inputFilename,
-        inputMimeType: state.docProcess.inputMimeType,
-        inputFile: state.docProcess.inputFile,
-        outputFormat: state.docProcess.outputFormat,
-        doOcr: state.docProcess.doOcr,
-        outputFilename: state.docProcess.outputFilename,
-        downloadUrl: state.docProcess.downloadUrl,
-        message: state.docProcess.message,
+        inputFilename: state.docProcess ? state.docProcess.inputFilename : '',
+        inputMimeType: state.docProcess ? state.docProcess.inputMimeType : '',
+        inputFile: state.docProcess ? state.docProcess.inputFile : null,
+        outputFormat: state.docProcess ? state.docProcess.outputFormat : '',
+        doOcr: state.docProcess ? state.docProcess.doOcr : false,
+        outputFilename: state.docProcess ? state.docProcess.outputFilename : '',
+        downloadUrl: state.docProcess ? state.docProcess.downloadUrl : '',
+        message: state.docProcess ? state.docProcess.message : '',
         initialvalues: state.docProcess
     };
 }
