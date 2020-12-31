@@ -18,25 +18,12 @@
     <!-- Don't publish the SPA source files, but do show them in the project files list -->
     <Content Remove="$(SpaRoot)**" />
     <None Remove="$(SpaRoot)**" />
-    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**;$(SpaRoot)build\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="ClientApp\src\AuthRoute.tsx" />
-    <None Remove="ClientApp\src\components\ConvertDocument.tsx" />
-    <None Remove="ClientApp\src\components\SignIn.tsx" />
-    <None Remove="ClientApp\src\components\SignOut.tsx" />
-    <None Remove="ClientApp\src\store\DocumentProcess.ts" />
-    <None Remove="ClientApp\src\store\Globals.ts" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <TypeScriptCompile Include="ClientApp\src\AuthRoute.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\components\ConvertDocument.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\components\SignIn.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\components\SignOut.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\store\DocumentProcess.ts" />
-    <TypeScriptCompile Include="ClientApp\src\store\Globals.ts" />
+    <None Remove="ClientApp\src\components\SignIn.js" />
+    <None Remove="ClientApp\src\components\SignIn.js.map" />
   </ItemGroup>
 
   <ItemGroup>

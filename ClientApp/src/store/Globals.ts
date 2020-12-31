@@ -7,6 +7,7 @@ export const apiBaseUrl: string = 'https://pixeditservercloud.azure-api.net';
 
 export interface GlobalState {
     authToken: string;
+    signInError: any;
 }
 
 export interface Credentials {
@@ -24,7 +25,7 @@ interface SignedInAction {
 
 interface SignInFailedAction {
     type: 'SIGN_IN_FAILED';
-    error: string;
+    error: any;
 }
 
 interface SignedOutAction {
@@ -46,7 +47,7 @@ export const actionCreators = {
                 }
             }).then((response) => {
                 dispatch({ type: 'SIGNED_IN', authToken: response.data });
-            }, (error) => {
+            }).catch ((error) => {
                 dispatch({ type: 'SIGN_IN_FAILED', error: error });
             });
         }
@@ -62,7 +63,8 @@ export const actionCreators = {
 // REDUCER
 
 const unloadedState: GlobalState = {
-    authToken: ''
+    authToken: '',
+    signInError: undefined
 };
 
 export const reducer: Reducer<GlobalState> = (state: GlobalState | undefined, incomingAction: Action): GlobalState => {
@@ -74,15 +76,18 @@ export const reducer: Reducer<GlobalState> = (state: GlobalState | undefined, in
     switch (action.type) {
         case 'SIGNED_IN':
             return {
-                authToken: action.authToken
+                authToken: action.authToken,
+                signInError: undefined
             };
         case 'SIGN_IN_FAILED':
             return {
-                authToken: ''
+                authToken: '',
+                signInError: action.error
             };
         case 'SIGNED_OUT':
             return {
-                authToken: ''
+                authToken: '',
+                signInError: undefined 
             };
         default:
             return state;

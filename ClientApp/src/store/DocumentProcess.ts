@@ -99,7 +99,7 @@ export const actionCreators = {
                             }
                         }).then((response) => {
                             let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
-                            respFilename = respFilename.replace(/^\"+|\"+$/g, '');
+                            respFilename = respFilename.replace(/^"+|"+$/g, '');
                             let respMimeType = response.headers["content-type"];
                             const url = window.URL.createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });

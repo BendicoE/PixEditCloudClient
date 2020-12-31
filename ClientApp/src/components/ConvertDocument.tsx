@@ -1,10 +1,10 @@
 ﻿import * as React from 'react';
 import { connect } from 'react-redux';
+import { compose } from 'redux';
 import { RouteComponentProps } from 'react-router';
 import { Field, reduxForm, InjectedFormProps } from 'redux-form';
 import { ApplicationState } from '../store';
 import * as DocumentProcessStore from '../store/DocumentProcess';
-import { Input } from 'reactstrap';
 
 type ConvertDocumentProps =
     DocumentProcessStore.DocumentProcessState
@@ -160,9 +160,14 @@ function mapStateToProps(state: ApplicationState) {
     };
 }
 
-export default reduxForm<DocumentProcessStore.DocumentProcessState>({
-    form: 'upload-file-form'
-})(connect(
-    mapStateToProps,
-    DocumentProcessStore.actionCreators
-)(ConvertDocument as any));
+export default compose(
+    connect(
+        mapStateToProps,
+        DocumentProcessStore.actionCreators),
+    reduxForm({
+        form: 'upload-file-form',
+        enableReinitialize: true,
+        keepDirtyOnReinitialize: true
+    })
+)(ConvertDocument as any);
+

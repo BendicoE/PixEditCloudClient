@@ -20,7 +20,7 @@ class SignIn extends React.PureComponent<SignOutProps & InjectedFormProps<SignOu
         const { handleSubmit } = this.props;
         return (
             <React.Fragment>
-                <h1>Sign Out'</h1>
+                <h1>Sign Out</h1>
                 <hr />
                 <div>
                     <form onSubmit={handleSubmit(this.onFormSubmit)}>
@@ -45,7 +45,7 @@ class SignIn extends React.PureComponent<SignOutProps & InjectedFormProps<SignOu
 
 }
 
-export default reduxForm<GlobalsStore.Credentials>({
+export default reduxForm({
     form: 'sign-out-form'
 })(connect(
     (state: ApplicationState) => state.globals,
