@@ -10,12 +10,6 @@ export interface GlobalState {
     signInError: any;
 }
 
-export interface Credentials {
-    username: string;
-    password: string;
-    serialNo: string;
-}
-
 // ACTIONS
 
 interface SignedInAction {

@@ -18,7 +18,7 @@ export default function configureStore(history: History, initialState?: Applicat
 
     const blacklistFilter = createBlacklistFilter(
         'docProcess',
-        ['inputFile', 'outputFilename', 'downloadUrl', 'message']
+        ['inputFilename', 'outputFilename', 'downloadUrl', 'message']
     );
 
      const persistConfig = {

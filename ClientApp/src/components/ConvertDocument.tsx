@@ -19,6 +19,8 @@ interface ConvertDocumentValues {
 
 // COMPONENT
 
+const fileRequired = (value: any) => (value ? undefined : '*Required');
+
 class ConvertDocument extends React.PureComponent<ConvertDocumentProps & InjectedFormProps<ConvertDocumentValues, ConvertDocumentProps>> {
     public render() {
         const { handleSubmit } = this.props;
@@ -29,35 +31,25 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps & Injecte
                 <div>
                     <form onSubmit={handleSubmit(this.onFormSubmit)}>
                         <div className='row'>
-                            <div className='input-group mb-3 col-sm-6'>
-                                <div className='custom-file'>
-                                    <Field
-                                        name='file'
-                                        type='file'
-                                        component={this.renderInputFile}
-                                    />
-                                    <label className='custom-file-label' htmlFor='inputFile'>{this.props.inputFilename || 'Choose file'}</label>
-                                </div>
-                                <div className='input-group-append'>
-                                    <button type='submit' className='btn btn-outline-primary'>Convert</button>
-                                </div>
-                            </div>
-                            <div className='input-group mb-3 col-sm-3'>
-                                <Field
-                                    name='outputFormat'
-                                    component={this.renderSelectOutputFormat}
-                                />
-                            </div>
-                            <div className='input-group mb-3 col-sm-3'>
-                                <div className='custom-control custom-checkbox'>
-                                    <Field
-                                        name='doOcr'
-                                        component={this.renderCheckDoOcr}
-                                        type='checkbox'
-                                        className='custom-control-input'
-                                    />
-                                </div>
-                            </div>
+                            <Field
+                                name='file'
+                                type='file'
+                                filename={this.props.inputFilename}
+                                colClass='input-group mb-3 col-sm-6'
+                                component={this.renderInputFile}
+                            />
+                            <Field
+                                name='outputFormat'
+                                colClass='input-group mb-3 col-sm-3'
+                                component={this.renderSelectOutputFormat}
+                            />
+                            <Field
+                                name='doOcr'
+                                component={this.renderCheckDoOcr}
+                                type='checkbox'
+                                colClass='input-group mb-3 col-sm-3'
+                                className='custom-control-input'
+                            />
                         </div>
                     </form>
                 </div>
@@ -65,24 +57,38 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps & Injecte
                     <p>{this.props.message}</p>
                 </div>
                 <div>
-                    <h2><a href={this.props.downloadUrl || ''} target='_blank'>{this.props.outputFilename || ''}</a></h2>
+                    <h2><a href={this.props.downloadUrl || ''} target='_blank' rel='noopener noreferrer'>{this.props.outputFilename || ''}</a></h2>
                 </div>
             </React.Fragment>
         );
     }
 
-    renderInputFile = ({ input, type }: { input: HTMLInputElement, type: string }) => {
+    renderInputFile = ( { input, type, colClass, filename, pristine, submitting, meta: { touched, error, warning } }:
+                        { input: HTMLInputElement, type: string, colClass: string, filename: string, pristine: boolean, submitting: boolean, meta: { touched: boolean, error: string, warning: string } }) => {
         return (
-            <div>
-                <input
-                    id='inputFile'
-                    name={input.name}
-                    type={type}
-                    accept='application/pdf, application/zip, image/tiff, image/jpeg, image/png, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, \
-                            application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation \
-                            application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook '
-                    onChange={event => this.handleInputFileChange(event)}
-                />
+            <div className={colClass}>
+                <div className='custom-file w-100'>
+                    <div>
+                        <input
+                            id='inputFile'
+                            name={input.name}
+                            type={type}
+                            accept='application/pdf, application/zip, image/tiff, image/jpeg, image/png, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, \
+                                    application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation \
+                                    application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook '
+                            onChange={event => this.handleInputFileChange(event)}
+                            />
+                    </div>
+                    <label className='custom-file-label' htmlFor='inputFile'>{filename || 'Choose file'}</label>
+                </div>
+                <div className='input-group-append'>
+                    <button type='submit' disabled={pristine || submitting} className='btn btn-outline-primary'>Convert</button>
+                </div>
+                {/*
+                * <div className='w-100'>
+                *    {error && <span className='text-danger'>{error}</span>}
+                * </div>
+                */}
             </div>
         );
     };
@@ -97,19 +103,21 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps & Injecte
         }
     };
 
-    renderSelectOutputFormat = ({ input }: { input: HTMLSelectElement }) => {
+    renderSelectOutputFormat = ({ input, colClass }: { input: HTMLSelectElement, colClass: string }) => {
         return (
-            <select
-                id='selectOutputFormat'
-                name={input.name}
-                className='custom-select'
-                onChange={event => this.handleOutputFormatChange(event)}
-            >
-                <option value='pdfa1b'>PDF/A-1b</option>
-                <option value='pdfa2b'>PDF/A-2b</option>
-                <option value='pdfa3b'>PDF/A-3b</option>
-                <option value='pdf'>PDF</option>
-            </select>
+            <div className={colClass}>
+                <select
+                    id='selectOutputFormat'
+                    name={input.name}
+                    className='custom-select'
+                    onChange={event => this.handleOutputFormatChange(event)}
+                >
+                    <option value='pdfa1b'>PDF/A-1b</option>
+                    <option value='pdfa2b'>PDF/A-2b</option>
+                    <option value='pdfa3b'>PDF/A-3b</option>
+                    <option value='pdf'>PDF</option>
+                </select>
+            </div>
         );
     };
 
@@ -119,17 +127,19 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps & Injecte
         }
     };
 
-    renderCheckDoOcr = ({ input, type }: { input: HTMLInputElement, type: string }) => {
+    renderCheckDoOcr = ({ input, type, colClass }: { input: HTMLInputElement, type: string, colClass: string }) => {
         return (
-            <div>
-                <input
-                    id='checkDoOcr'
-                    name={input.name}
-                    type={type}
-                    className='custom-control-input'
-                    onChange={event => this.handleDoOcrChange(event)}
-                />
-                <label className='custom-control-label' htmlFor='checkDoOcr'>Recognize Text</label>
+            <div className={colClass}>
+                <div className='custom-control custom-checkbox'>
+                        <input
+                            id='checkDoOcr'
+                            name={input.name}
+                            type={type}
+                            className='custom-control-input'
+                            onChange={event => this.handleDoOcrChange(event)}
+                        />
+                    <label className='custom-control-label' htmlFor='checkDoOcr'>Recognize Text</label>
+                </div>
             </div>
         );
     };
@@ -141,7 +151,7 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps & Injecte
     };
 
     onFormSubmit = () => {
-        this.props.processDocument();
+        this.props.inputFile && this.props.processDocument();
     };
 
 }
@@ -156,7 +166,7 @@ function mapStateToProps(state: ApplicationState) {
         outputFilename: state.docProcess ? state.docProcess.outputFilename : '',
         downloadUrl: state.docProcess ? state.docProcess.downloadUrl : '',
         message: state.docProcess ? state.docProcess.message : '',
-        initialvalues: state.docProcess
+        initialValues: state.docProcess
     };
 }
 
@@ -164,10 +174,8 @@ export default compose(
     connect(
         mapStateToProps,
         DocumentProcessStore.actionCreators),
-    reduxForm({
-        form: 'upload-file-form',
-        enableReinitialize: true,
-        keepDirtyOnReinitialize: true
+    reduxForm<ConvertDocumentValues>({
+        form: 'upload-file-form'
     })
 )(ConvertDocument as any);
 

@@ -11,7 +11,7 @@ type SignInProps =
     & typeof GlobalsStore.actionCreators
     & RouteComponentProps<{}>;
 
-interface SignInValues {
+interface Credentials {
     username: string;
     password: string;
     serialNo: string;
@@ -21,9 +21,9 @@ interface SignInValues {
 
 const required = (value: any) => (value ? undefined : '*Required');
 
-class SignIn extends React.PureComponent<SignInProps & InjectedFormProps<SignInValues, SignInProps>> {
+class SignIn extends React.PureComponent<SignInProps & InjectedFormProps<Credentials, SignInProps>> {
     public render() {
-        const { handleSubmit } = this.props;
+        const { handleSubmit, pristine, submitting } = this.props;
         return (
             <React.Fragment>
                 <h1>Sign In</h1>
@@ -58,14 +58,14 @@ class SignIn extends React.PureComponent<SignInProps & InjectedFormProps<SignInV
                         </div>
                         <div className='row'>
                             <div className='input-group mb-3 col-sm-4'>
-                                <button type='submit' className='btn btn-outline-primary'>Sign In</button>
+                                <button type='submit' disabled={pristine || submitting} className='btn btn-outline-primary'>Sign In</button>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div>
                     <p>{this.props.signInError && this.props.signInError.response &&
-                            (this.props.signInError.response.status == 401 ?
+                            (this.props.signInError.response.status === 401 ?
                                 <span className='text-danger'>Invalid user name, password and serial number combination :-(</span> :
                                 <span className='text-danger'>Sign in failed: { this.props.signInError.response.message }</span>)
                     }</p>
@@ -74,8 +74,8 @@ class SignIn extends React.PureComponent<SignInProps & InjectedFormProps<SignInV
          );
     }
 
-    renderField = ({ input, label, type, colClass, meta: { touched, error, warning } }:
-        { input: any, label: string, type: string, colClass: string, meta: { touched: boolean, error: string, warning: string } }) => (
+    renderField = ( { input, label, type, colClass, meta: { touched, error, warning } }:
+                    { input: any, label: string, type: string, colClass: string, meta: { touched: boolean, error: string, warning: string } }) => (
             <div className={colClass}>
                 <div className='w-100'>
                     <input {...input} placeholder={label} type={type} className='form-control' />
@@ -92,7 +92,7 @@ class SignIn extends React.PureComponent<SignInProps & InjectedFormProps<SignInV
        this.props.signIn(username, password, serialNo);
     }
 
-    onFormSubmit = (formValues: SignInValues) => {
+    onFormSubmit = (formValues: Credentials) => {
         this.signIn(formValues.username, formValues.password, formValues.serialNo);
     };
 
@@ -102,7 +102,7 @@ export default compose(
     connect(
         (state: ApplicationState) => state.globals,
         GlobalsStore.actionCreators),
-    reduxForm<GlobalsStore.Credentials>({
+    reduxForm<Credentials>({
         form: 'sign-in-form'
     })
 )(SignIn as any);
