@@ -37,7 +37,9 @@ class Home extends React.PureComponent<ApiInfoProps> {
     }
 
     private ensureDataFetched() {
-        this.props.requestApiInfo();
+        if (this.props.apiInfo.appName == '') {
+            this.props.requestApiInfo();
+        }
     }
 }
 

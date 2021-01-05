@@ -6,7 +6,6 @@ import * as Globals from './Globals';
 // STATE
 
 export interface ApiInfoState {
-    isLoading: boolean;
     apiInfo: ApiInfo;
 }
 
@@ -19,16 +18,12 @@ export interface ApiInfo {
 
 // ACTIONS
 
-interface RequestApiInfoAction {
-    type: 'REQUEST_API_INFO';
-}
-
 interface ReceiveApiInfoAction {
     type: 'RECEIVE_API_INFO';
     apiInfo: ApiInfo;
 }
 
-type KnownAction = RequestApiInfoAction | ReceiveApiInfoAction;
+type KnownAction = ReceiveApiInfoAction;
 
 // ACTION CREATORS
 
@@ -50,8 +45,7 @@ export const actionCreators = {
 // REDUCER
 
 const unloadedState: ApiInfoState = {
-    apiInfo: { appName: '-', appVersion: '-', publishedDate: '-', unavailable: false },
-    isLoading: false
+    apiInfo: { appName: '', appVersion: '', publishedDate: '', unavailable: false }
 };
 
 export const reducer: Reducer<ApiInfoState> = (state: ApiInfoState | undefined, incomingAction: Action): ApiInfoState => {
@@ -61,15 +55,9 @@ export const reducer: Reducer<ApiInfoState> = (state: ApiInfoState | undefined, 
 
     const action = incomingAction as KnownAction;
     switch (action.type) {
-        case 'REQUEST_API_INFO':
-            return {
-                apiInfo: state.apiInfo,
-                isLoading: true
-            };
         case 'RECEIVE_API_INFO':
             return {
-                apiInfo: action.apiInfo,
-                isLoading: false
+                apiInfo: action.apiInfo
             };
         default:
             return state;
