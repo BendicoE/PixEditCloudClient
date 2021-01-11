@@ -1,11 +1,11 @@
 ﻿import { Action, Reducer } from 'redux';
-import { AppThunkAction } from './';
+import { AppThunkAction } from '.';
 import axios from 'axios';
 import * as Globals from './Globals';
 
 // STATE
 
-export interface DocumentProcessState {
+export interface DocumentConversionState {
     inputFilename: string;
     inputMimeType: string;
     inputFile: File | null;
@@ -35,8 +35,8 @@ interface DoOcrSelectedAction {
     selected: boolean;
 }
 
-interface ProcessDocumentAction {
-    type: 'PROCESS_DOCUMENT';
+interface ConvertDocumentAction {
+    type: 'CONVERT_DOCUMENT';
 }
 
 interface DocumentReadyAction {
@@ -45,45 +45,45 @@ interface DocumentReadyAction {
     downloadUrl: string;
 }
 
-interface ProcessFailedAction {
-    type: 'PROCESS_FAILED';
+interface ConversionFailedAction {
+    type: 'CONVERSION_FAILED';
     error: string;
 }
 
-type KnownAction = FileSelectedAction | OutputFormatSelectedAction | DoOcrSelectedAction | ProcessDocumentAction | DocumentReadyAction | ProcessFailedAction;
+type KnownAction = FileSelectedAction | OutputFormatSelectedAction | DoOcrSelectedAction | ConvertDocumentAction | DocumentReadyAction | ConversionFailedAction;
 
 // ACTION CREATORS
 
 export const actionCreators = {
     selectFile: (filename: string, mimeType: string, file: File): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
-        if (appState && appState.docProcess) {
+        if (appState && appState.docConversion) {
             dispatch({ type: 'FILE_SELECTED', filename: filename, mimeType: mimeType, file: file });
         }
     },
 
     selectOutputFormat: (format: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
-        if (appState && appState.docProcess) {
+        if (appState && appState.docConversion) {
             dispatch({ type: 'OUTPUT_FORMAT_SELECTED', format: format });
         }
     },
 
     selectDoOcr: (selected: boolean): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
-        if (appState && appState.docProcess) {
+        if (appState && appState.docConversion) {
             dispatch({ type: 'DO_OCR_SELECTED', selected: selected });
         }
     },
 
     processDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
-        if (appState && appState.docProcess) {
-            dispatch({ type: 'PROCESS_DOCUMENT' });
+        if (appState && appState.docConversion) {
+            dispatch({ type: 'CONVERT_DOCUMENT' });
             const url = Globals.apiBaseUrl + '/Convert';
             const data = new FormData();
-            if (appState.docProcess.inputFile != null) {
-                data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
+            if (appState.docConversion.inputFile != null) {
+                data.append('file', new Blob([appState.docConversion.inputFile], { type: appState.docConversion.inputMimeType }), appState.docConversion.inputFilename);
                 const reader = new window.FileReader();
                 reader.onloadend = () => {
                     if (appState.globals) {
@@ -94,8 +94,8 @@ export const actionCreators = {
                                 'Accept': 'application/pdf, application/json'
                             },
                             params: {
-                                'Format': appState.docProcess ? appState.docProcess.outputFormat : '',
-                                'OCR': appState.docProcess ? appState.docProcess.doOcr : false
+                                'Format': appState.docConversion ? appState.docConversion.outputFormat : '',
+                                'OCR': appState.docConversion ? appState.docConversion.doOcr : false
                             }
                         }).then((response) => {
                             let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
@@ -104,11 +104,11 @@ export const actionCreators = {
                             const url = window.URL.createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                            dispatch({ type: 'CONVERSION_FAILED', error: error });
                         });
                     }
                 };
-                reader.readAsDataURL(appState.docProcess.inputFile);
+                reader.readAsDataURL(appState.docConversion.inputFile);
             }
         }
     }
@@ -116,7 +116,7 @@ export const actionCreators = {
 
 // REDUCER
 
-const unloadedState: DocumentProcessState = {
+const unloadedState: DocumentConversionState = {
     inputFilename: '',
     inputMimeType: '',
     inputFile: null,
@@ -127,7 +127,7 @@ const unloadedState: DocumentProcessState = {
     message: ''
 };
 
-export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessState | undefined, incomingAction: Action): DocumentProcessState => {
+export const reducer: Reducer<DocumentConversionState> = (state: DocumentConversionState | undefined, incomingAction: Action): DocumentConversionState => {
     if (state === undefined) {
         return unloadedState;
     }
@@ -167,7 +167,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 downloadUrl: '',
                 message: ''
             };
-        case 'PROCESS_DOCUMENT':
+        case 'CONVERT_DOCUMENT':
             return {
                 inputFilename: state.inputFilename,
                 inputMimeType: state.inputMimeType,
@@ -189,7 +189,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 downloadUrl: action.downloadUrl,
                 message: 'Document processed successfully:-)'
             };
-        case 'PROCESS_FAILED':
+        case 'CONVERSION_FAILED':
             return {
                 inputFilename: '',
                 inputMimeType: '',

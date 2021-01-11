@@ -1,13 +1,13 @@
 import * as Globals from './Globals';
 import * as ApiInfo from './ApiInfo';
-import * as DocumentProcess from './DocumentProcess';
+import * as DocumentConversion from './DocumentConversion';
 
 
 // The top-level state object
 export interface ApplicationState {
     globals: Globals.GlobalState | undefined;
     apiInfo: ApiInfo.ApiInfoState | undefined;
-    docProcess: DocumentProcess.DocumentProcessState | undefined;
+    docConversion: DocumentConversion.DocumentConversionState | undefined;
 }
 
 // Whenever an action is dispatched, Redux will update each top-level application state property using
@@ -16,7 +16,7 @@ export interface ApplicationState {
 export const reducers = {
     globals: Globals.reducer,
     apiInfo: ApiInfo.reducer,
-    docProcess: DocumentProcess.reducer
+    docConversion: DocumentConversion.reducer
 };
 
 // This type can be used as a hint on action creators so that its 'dispatch' and 'getState' params are

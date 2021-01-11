@@ -17,14 +17,14 @@ export default function configureStore(history: History, initialState?: Applicat
     ];
 
     const blacklistFilter = createBlacklistFilter(
-        'docProcess',
+        'docConversion',
         ['inputFilename', 'outputFilename', 'downloadUrl', 'message']
     );
 
      const persistConfig = {
          key: 'root',
          storage: storage,
-         whitelist: ['globals', 'docProcess'],
+         whitelist: ['globals', 'docConversion'],
          transforms: [blacklistFilter]
      }
 

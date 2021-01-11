@@ -4,11 +4,11 @@ import { compose } from 'redux';
 import { RouteComponentProps } from 'react-router';
 import { Field, reduxForm, InjectedFormProps } from 'redux-form';
 import { ApplicationState } from '../store';
-import * as DocumentProcessStore from '../store/DocumentProcess';
+import * as DocumentConversionStore from '../store/DocumentConversion';
 
 type ConvertDocumentProps =
-    DocumentProcessStore.DocumentProcessState
-    & typeof DocumentProcessStore.actionCreators
+    DocumentConversionStore.DocumentConversionState
+    & typeof DocumentConversionStore.actionCreators
     & RouteComponentProps<{}>;
 
 interface ConvertDocumentValues {
@@ -158,22 +158,22 @@ class ConvertDocument extends React.PureComponent<ConvertDocumentProps & Injecte
 
 function mapStateToProps(state: ApplicationState) {
     return {
-        inputFilename: state.docProcess ? state.docProcess.inputFilename : '',
-        inputMimeType: state.docProcess ? state.docProcess.inputMimeType : '',
-        inputFile: state.docProcess ? state.docProcess.inputFile : null,
-        outputFormat: state.docProcess ? state.docProcess.outputFormat : '',
-        doOcr: state.docProcess ? state.docProcess.doOcr : false,
-        outputFilename: state.docProcess ? state.docProcess.outputFilename : '',
-        downloadUrl: state.docProcess ? state.docProcess.downloadUrl : '',
-        message: state.docProcess ? state.docProcess.message : '',
-        initialValues: state.docProcess
+        inputFilename: state.docConversion ? state.docConversion.inputFilename : '',
+        inputMimeType: state.docConversion ? state.docConversion.inputMimeType : '',
+        inputFile: state.docConversion ? state.docConversion.inputFile : null,
+        outputFormat: state.docConversion ? state.docConversion.outputFormat : '',
+        doOcr: state.docConversion ? state.docConversion.doOcr : false,
+        outputFilename: state.docConversion ? state.docConversion.outputFilename : '',
+        downloadUrl: state.docConversion ? state.docConversion.downloadUrl : '',
+        message: state.docConversion ? state.docConversion.message : '',
+        initialValues: state.docConversion
     };
 }
 
 export default compose(
     connect(
         mapStateToProps,
-        DocumentProcessStore.actionCreators),
+        DocumentConversionStore.actionCreators),
     reduxForm<ConvertDocumentValues>({
         form: 'upload-file-form'
     })
