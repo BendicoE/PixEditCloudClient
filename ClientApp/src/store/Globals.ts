@@ -2,8 +2,9 @@
 import { AppThunkAction } from './';
 import axios from 'axios';
 
-export const apiBaseUrl: string = 'https://pixeditservercloud.azure-api.net';
-//export const apiBaseUrl: string = 'https://localhost:44321/convertpdf';
+//export const apiBaseUrl: string = 'https://pixeditservercloud.azure-api.net';
+//export const apiBaseUrl: string = 'https://pdfconvertmicroservice20200922140548-staging.azurewebsites.net/convertpdf';
+export const apiBaseUrl: string = 'https://localhost:44321/convertpdf';
 
 export interface GlobalState {
     authToken: string;

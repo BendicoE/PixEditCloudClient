@@ -33,7 +33,7 @@ class NavMenu extends React.PureComponent<GlobalProps, { isOpen: boolean }> {
                                 {
                                     this.props.authToken ?
                                         <NavItem>
-                                            <NavLink tag={Link} className="text-dark" to="/convert-document">Convert Document</NavLink>
+                                            <NavLink tag={Link} className="text-dark" to="/process-document">Process Document</NavLink>
                                         </NavItem> : null
                                 }
                                 {

@@ -4,7 +4,7 @@ import Layout from './components/Layout';
 import Home from './components/Home';
 import SignIn from './components/SignIn';
 import SignOut from './components/SignOut';
-import ConvertDocument from './components/ConvertDocument';
+import ProcessDocument from './components/ProcessDocument';
 import AuthRoute from './AuthRoute';
 
 import './custom.css'
@@ -12,7 +12,7 @@ import './custom.css'
 export default () => (
     <Layout>
         <Route exact path='/' component={Home} />
-        <AuthRoute path='/convert-document' component={ConvertDocument} />
+        <AuthRoute path='/process-document' component={ProcessDocument} />
         <AuthRoute path='/sign-in' component={SignIn} />
         <AuthRoute path='/sign-out' component={SignOut} />
     </Layout>

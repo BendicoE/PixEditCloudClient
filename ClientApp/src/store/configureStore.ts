@@ -4,8 +4,8 @@ import { connectRouter, routerMiddleware } from 'connected-react-router';
 import { History } from 'history';
 import { ApplicationState, reducers } from './';
 import { reducer as formReducer } from 'redux-form';
-import { persistStore, persistReducer, createTransform } from 'redux-persist';
-import { createFilter, createBlacklistFilter } from 'redux-persist-transform-filter';
+import { persistStore, persistReducer } from 'redux-persist';
+import { createBlacklistFilter } from 'redux-persist-transform-filter';
 import storage from 'redux-persist/lib/storage';
 
 
@@ -17,14 +17,14 @@ export default function configureStore(history: History, initialState?: Applicat
     ];
 
     const blacklistFilter = createBlacklistFilter(
-        'docConversion',
-        ['inputFilename', 'outputFilename', 'downloadUrl', 'message']
+        'docProcess',
+        ['inputFilename', 'outputFilename', 'inputFile', 'downloadUrl', 'pagePreviews', 'message']
     );
 
      const persistConfig = {
          key: 'root',
          storage: storage,
-         whitelist: ['globals', 'docConversion'],
+         whitelist: ['globals', 'docProcess'],
          transforms: [blacklistFilter]
      }
 
