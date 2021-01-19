@@ -2,6 +2,7 @@
 import { AppThunkAction } from '.';
 import axios from 'axios';
 import * as Globals from './Globals';
+import * as JobSpec from './JobSpec'
 
 // STATE
 
@@ -10,17 +11,45 @@ export interface PagePreview {
     imageData: string;
 }
 
+export interface Enum {
+    [id: string]: string
+}
+
+export enum OutputFormat {
+    PDFA1B = 'PDF/A-1b',
+    PDFA2B = 'PDF/A-2b',
+    PDFA3B = 'PDF/A-3b',
+    PDF = 'PDF',
+    TIFF = 'TIFF'
+}
+
+export enum DocumentSeparationType {
+    None = 'No Separation',
+    QRCodes = 'QR-Codes',
+    GenericType39 = 'Generic (Type39)',
+    BlankSheets = 'Blank Sheets'
+}
+
+export interface ProcessOperations {
+    removeBlackBorders: boolean,
+    removeBlankPages: boolean,
+    autoOrientation: boolean,
+    documentSeparationType: DocumentSeparationType
+}
+
 export interface DocumentProcessState {
     mode: string;
     inputFilename: string;
     inputMimeType: string;
     inputFile: File | null;
-    outputFormat: string;
+    outputFormat: OutputFormat;
     doOcr: boolean;
     outputFilename: string;
     downloadUrl: string;
     pixSize: number;
     pagePreviews: PagePreview[] | null;
+    processOperations: ProcessOperations | null;
+    isProcessing: boolean;
     message: string;
 }
 
@@ -40,7 +69,7 @@ interface FileSelectedAction {
 
 interface OutputFormatSelectedAction {
     type: 'OUTPUT_FORMAT_SELECTED';
-    format: string;
+    format: OutputFormat;
 }
 
 interface DoOcrSelectedAction {
@@ -72,6 +101,21 @@ interface PreviewReadyAction {
     pagePreviews: PagePreview[];
 }
 
+interface OperationSelectedAction {
+    type: 'OPERATION_SELECTED';
+    id: string;
+    selected: boolean;
+}
+
+interface DocumentSeparationTypeSelectedAction {
+    type: 'DOCUMENT_SEPARATION_TYPE_SELECTED';
+    separationType: DocumentSeparationType;
+}
+
+interface ProcessDocumentAction {
+    type: 'PROCESS_DOCUMENT';
+}
+
 interface ProcessFailedAction {
     type: 'PROCESS_FAILED';
     error: string;
@@ -88,6 +132,9 @@ type KnownAction =
     PixSizeSelectedAction |
     PreviewDocumentAction |
     PreviewReadyAction |
+    OperationSelectedAction |
+    DocumentSeparationTypeSelectedAction |
+    ProcessDocumentAction |
     ProcessFailedAction;
 
 // ACTION CREATORS
@@ -107,7 +154,7 @@ export const actionCreators = {
         }
     },
 
-    selectOutputFormat: (format: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    selectOutputFormat: (format: OutputFormat): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
             dispatch({ type: 'OUTPUT_FORMAT_SELECTED', format: format });
@@ -146,7 +193,7 @@ export const actionCreators = {
                             let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
                             respFilename = respFilename.replace(/^"+|"+$/g, '');
                             let respMimeType = response.headers["content-type"];
-                            const url = window.URL.createObjectURL(new Blob([response.data], { type: respMimeType }));
+                            const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
                             dispatch({ type: 'PROCESS_FAILED', error: error });
@@ -194,7 +241,82 @@ export const actionCreators = {
                 reader.readAsDataURL(appState.docProcess.inputFile);
             }
         }
-    }
+    },
+
+    selectOperation: (id: string, selected: boolean): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'OPERATION_SELECTED', id: id, selected: selected });
+        }
+    },
+
+    selectDocumentSeparationType: (separationType: DocumentSeparationType): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'DOCUMENT_SEPARATION_TYPE_SELECTED', separationType: separationType });
+        }
+    },
+
+    processDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'PROCESS_DOCUMENT' });
+            const url = Globals.apiBaseUrl + '/Process';
+            const data = new FormData();
+            if (appState.docProcess.inputFile != null) {
+                let jobSpec = JobSpec.header;
+                jobSpec += JobSpec.convertProperties;
+                if (appState.docProcess.processOperations && appState.docProcess.processOperations.removeBlackBorders)
+                    jobSpec += JobSpec.removeBlackBorders;
+                if (appState.docProcess.processOperations && appState.docProcess.processOperations.removeBlankPages)
+                    jobSpec += JobSpec.removeBlankPages;
+                if (appState.docProcess.processOperations && appState.docProcess.processOperations.autoOrientation)
+                    jobSpec += JobSpec.autoOrientation;
+                if (appState.docProcess.processOperations) {
+                    switch (appState.docProcess.processOperations.documentSeparationType as string) {
+                        case 'None':
+                            break;
+                        case 'QRCodes':
+                            jobSpec += JobSpec.separationQRCodes;
+                            break;
+                        case 'GenericType39':
+                            jobSpec += JobSpec.separationGenericBarcodes;
+                            break;
+                        case 'BlankSheets':
+                            jobSpec += JobSpec.separationBlankSheets;
+                            break;
+                    }
+                }
+                jobSpec += JobSpec.saveProperties;
+                jobSpec += JobSpec.footer;
+                data.append('file', new Blob([jobSpec], { type: 'application/json'}), 'jobspec.json');
+                data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
+                const reader = new window.FileReader();
+                reader.onloadend = () => {
+                    if (appState.globals) {
+                        axios.post(url, data, {
+                            responseType: 'blob',
+                            headers: {
+                                'Authorization': 'Bearer ' + appState.globals.authToken,
+                                'Accept': 'application/pdf, application/zip, application/json'
+                            }
+                        }).then((response) => {
+                            let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
+                            respFilename = respFilename.replace(/^"+|"+$/g, '');
+                            let respMimeType = response.headers["content-type"];
+                            const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
+                            dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
+                        }, (error) => {
+                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                        });
+                    }
+                };
+                reader.readAsDataURL(appState.docProcess.inputFile);
+            }
+        }
+    },
+
+
 };
 
 // REDUCER
@@ -204,12 +326,19 @@ const unloadedState: DocumentProcessState = {
     inputFilename: '',
     inputMimeType: '',
     inputFile: null,
-    outputFormat: 'pdfa1b',
+    outputFormat: OutputFormat.PDFA1B,
     doOcr: false,
     outputFilename: '',
     downloadUrl: '',
     pixSize: 100,
     pagePreviews: null,
+    processOperations: {
+        removeBlackBorders: true,
+        removeBlankPages: true,
+        autoOrientation: true,
+        documentSeparationType: DocumentSeparationType.None
+    },
+    isProcessing: false,
     message: ''
 };
 
@@ -222,143 +351,124 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
     switch (action.type) {
         case 'MODE_SELECTED':
             return {
+                ...state,
                 mode: action.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
-                outputFilename: state.outputFilename,
-                downloadUrl: state.downloadUrl,
-                pixSize: state.pixSize,
-                pagePreviews: state.pagePreviews,
-                message: state.message
+                outputFilename: '',
+                downloadUrl: '',
+                pagePreviews: null,
+                message: ''
             };
         case 'FILE_SELECTED':
             return {
-                mode: state.mode,
+                ...state,
                 inputFilename: action.filename,
                 inputMimeType: action.mimeType,
                 inputFile: action.file,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
                 outputFilename: '',
                 downloadUrl: '',
-                pixSize: state.pixSize,
                 pagePreviews: null,
                 message: ''
             };
         case 'OUTPUT_FORMAT_SELECTED':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
+                ...state,
                 outputFormat: action.format,
-                doOcr: state.doOcr,
                 outputFilename: '',
                 downloadUrl: '',
-                pixSize: state.pixSize,
-                pagePreviews: state.pagePreviews,
                 message: ''
             };
         case 'DO_OCR_SELECTED':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
+                ...state,
                 doOcr: action.selected,
                 outputFilename: '',
                 downloadUrl: '',
-                pixSize: state.pixSize,
-                pagePreviews: state.pagePreviews,
                 message: ''
             };
         case 'CONVERT_DOCUMENT':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
+                ...state,
                 outputFilename: '',
                 downloadUrl: '',
-                pixSize: state.pixSize,
                 pagePreviews: null,
+                isProcessing: true,
                 message: 'Processing document, please wait...'
             };
         case 'DOCUMENT_READY':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
+                ...state,
                 outputFilename: action.filename,
                 downloadUrl: action.downloadUrl,
-                pixSize: state.pixSize,
-                pagePreviews: state.pagePreviews,
+                isProcessing: false,
                 message: 'Document processed successfully:-)'
             };
         case 'PIXSIZE_SELECTED':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
-                outputFilename: state.outputFilename,
-                downloadUrl: state.downloadUrl,
+                ...state,
                 pixSize: action.pixSize,
                 pagePreviews: null,
                 message: ''
             };
         case 'PREVIEW_DOCUMENT':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
+                ...state,
                 outputFilename: '',
                 downloadUrl: '',
-                pixSize: state.pixSize,
                 pagePreviews: null,
+                isProcessing: true,
                 message: 'Processing document, please wait...'
             };
         case 'PREVIEW_READY':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
-                outputFilename: state.outputFilename,
-                downloadUrl: state.downloadUrl,
-                pixSize: state.pixSize,
+                ...state,
                 pagePreviews: action.pagePreviews,
+                isProcessing: false,
                 message: ''
             };
-
-        case 'PROCESS_FAILED':
+        case 'OPERATION_SELECTED':
             return {
-                mode: state.mode,
-                inputFilename: state.inputFilename,
-                inputMimeType: state.inputMimeType,
-                inputFile: state.inputFile,
-                outputFormat: state.outputFormat,
-                doOcr: state.doOcr,
+                ...state,
+                processOperations: {
+                    ...state.processOperations,
+                    removeBlackBorders: action.id === 'checkRemoveBlackBorders' ? action.selected : (state.processOperations ? state.processOperations.removeBlackBorders : false),
+                    removeBlankPages: action.id === 'checkRemoveBlankPages' ? action.selected : (state.processOperations ? state.processOperations.removeBlankPages : false),
+                    autoOrientation: action.id === 'checkAutoOrientation' ? action.selected : (state.processOperations ? state.processOperations.autoOrientation : false),
+                    documentSeparationType: (state.processOperations ? state.processOperations.documentSeparationType : DocumentSeparationType.None)
+                },
                 outputFilename: '',
                 downloadUrl: '',
-                pixSize: state.pixSize,
+                message: ''
+            };
+        case 'DOCUMENT_SEPARATION_TYPE_SELECTED':
+            return {
+                ...state,
+                processOperations: {
+                    ...state.processOperations,
+                    removeBlackBorders: state.processOperations ? state.processOperations.removeBlackBorders : false,
+                    removeBlankPages: state.processOperations ? state.processOperations.removeBlankPages : false,
+                    autoOrientation: state.processOperations ? state.processOperations.autoOrientation : false,
+                    documentSeparationType: action.separationType
+                },
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
+        case 'PROCESS_DOCUMENT':
+            return {
+                ...state,
+                outputFilename: '',
+                downloadUrl: '',
                 pagePreviews: null,
+                isProcessing: true,
+                message: 'Processing document, please wait...'
+            };
+        case 'PROCESS_FAILED':
+            return {
+                ...state,
+                outputFilename: '',
+                downloadUrl: '',
+                pagePreviews: null,
+                isProcessing: false,
                 message: 'Sorry, an error occurred:-( ' + action.error
             };
         default:

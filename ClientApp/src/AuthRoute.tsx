@@ -8,8 +8,8 @@ const AuthRoute = (props: any) => {
     const { authToken } = props;
     const curPath = useLocation().pathname;
     if (authToken && curPath === '/sign-in')
-        return <Redirect to='/convert-document' />;
-    else if (!authToken && curPath === '/convert-document')
+        return <Redirect to='/process-document' />;
+    else if (!authToken && curPath === '/process-document')
         return <Redirect to='/sign-in' />;
     else if (!authToken && curPath === '/sign-out')
         return <Redirect to='/' />

@@ -6,6 +6,7 @@ import { RouteComponentProps } from 'react-router';
 import { Field, reduxForm, InjectedFormProps } from 'redux-form';
 import { ApplicationState } from '../store';
 import * as DocumentProcessStore from '../store/DocumentProcess';
+import { Enum } from '../store/DocumentProcess';
 
 type ProcessDocumentProps =
     DocumentProcessStore.DocumentProcessState
@@ -46,16 +47,20 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                         <div className='row'>
                             <div className='col-sm-12'>
                                 <Tabs activeKey={this.props.mode} onSelect={ this.onModeSelect }>
-                                    <Tab eventKey='convert' title='Convert'>
+                                    <Tab eventKey='convert' title='Convert' disabled={this.props.isProcessing}>
                                         <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
                                                 <Field
                                                     name='outputFormat'
-                                                    outputFormat={this.props.outputFormat}
-                                                    component={this.renderSelectOutputFormat}
+                                                    elemId='selectOutputFormat'
+                                                    label='Output Format'
+                                                    options={DocumentProcessStore.OutputFormat}
+                                                    component={this.renderSelectOption}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleOutputFormatChange(event)}
                                                 />
                                             </div>
                                             <div className='col-sm-3'>
+                                                <label>Options</label>
                                                 <Field
                                                     name='doOcr'
                                                     component={this.renderCheckDoOcr}
@@ -65,7 +70,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                             </div>
                                         </div>
                                     </Tab>
-                                    <Tab eventKey='preview' title='Preview'>
+                                    <Tab eventKey='preview' title='Preview' disabled={this.props.isProcessing}>
                                         <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
                                                 <Field
@@ -76,12 +81,63 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                             </div>
                                         </div>
                                     </Tab>
+                                    <Tab eventKey='process' title='Process' disabled={this.props.isProcessing}>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='processOperations.removeBlackBorders'
+                                                    elemId='checkRemoveBlackBorders'
+                                                    component={this.renderCheckOperation}
+                                                    label='Remove Black Borders'
+                                                    type='checkbox'
+                                                    className='custom-control-input'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='processOperations.removeBlankPages'
+                                                    elemId='checkRemoveBlankPages'
+                                                    component={this.renderCheckOperation}
+                                                    label='Remove Blank Pages'
+                                                    type='checkbox'
+                                                    className='custom-control-input'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='processOperations.autoOrientation'
+                                                    elemId='checkAutoOrientation'
+                                                    component={this.renderCheckOperation}
+                                                    label='Correct Page Orientation'
+                                                    type='checkbox'
+                                                    className='custom-control-input'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='processOperations.documentSeparationType'
+                                                    elemId='selectDocumentSeparationType'
+                                                    label='Separate Documents'
+                                                    options={DocumentProcessStore.DocumentSeparationType}
+                                                    component={this.renderSelectOption}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleDocumentSeparationTypeChange(event)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                    </Tab>
                                 </Tabs>
                             </div>
                         </div>
                         <div className='row'>
                             <div className='mb-3 col-sm-3'>
-                                <button type='submit' disabled={submitting || this.props.inputFile == null } className='btn btn-outline-primary'>Do it!</button>
+                                <button type='submit' disabled={submitting || this.props.inputFile == null || this.props.isProcessing} className='btn btn-outline-primary'>Do it!</button>
                             </div>
                         </div>
                     </form>
@@ -90,9 +146,9 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     <p>{this.props.message}</p>
                 </div>
                 {
-                    this.props.mode === 'convert' && this.props.downloadUrl ?
+                    (this.props.mode === 'convert' || this.props.mode === 'process') && this.props.downloadUrl ?
                         <div>
-                            <h2><a href={this.props.downloadUrl || ''} target='_blank' rel='noopener noreferrer'>{this.props.outputFilename || ''}</a></h2>
+                            <h2><a href={this.props.downloadUrl || ''} target='_blank' rel='noopener noreferrer' download={this.props.outputFilename}>{this.props.outputFilename || ''}</a></h2>
                         </div>
                         : <div/>
                 }
@@ -139,21 +195,24 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
-    renderSelectOutputFormat = ({ input, outputFormat }: { input: HTMLSelectElement, outputFormat: string }) => {
+    renderSelectOption = ({ input, options, outputFormat, elemId, label, onChangeHandler }: { input: HTMLSelectElement, options: Enum, outputFormat: string, elemId: string, label: string, onChangeHandler: (event: React.ChangeEvent<HTMLSelectElement>) => any }) => {
         return (
             <div>
-                <label htmlFor='selectOutputFormat'>Output Format</label>
+                <label htmlFor={elemId}>{label}</label>
                 <select
-                    id='selectOutputFormat'
+                    id={elemId}
                     name={input.name}
                     className='custom-select'
                     value={outputFormat}
-                    onChange={event => this.handleOutputFormatChange(event)}
+                    onChange={onChangeHandler}
                 >
-                    <option value='pdfa1b'>PDF/A-1b</option>
-                    <option value='pdfa2b'>PDF/A-2b</option>
-                    <option value='pdfa3b'>PDF/A-3b</option>
-                    <option value='pdf'>PDF</option>
+                    {
+                        Object.keys(options).map(key => {
+                            return (
+                                <option key={key} value={key}>{options[key]}</option>
+                            );
+                        })
+                    }
                 </select>
             </div>
         );
@@ -161,24 +220,21 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
 
     handleOutputFormatChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if (event.target && event.target.value) {
-            this.props.selectOutputFormat(event.target.value);
+            this.props.selectOutputFormat(event.target.value as DocumentProcessStore.OutputFormat);
         }
     };
 
     renderCheckDoOcr = ({ input, type }: { input: HTMLInputElement, type: string }) => {
         return (
-            <div>
-                <label>Options</label>
-                <div className='custom-control custom-checkbox'>
-                    <input
-                        id='checkDoOcr'
-                        name={input.name}
-                        type={type}
-                        className='custom-control-input'
-                        onChange={event => this.handleDoOcrChange(event)}
-                    />
-                    <label className='custom-control-label' htmlFor='checkDoOcr'>Recognize Text</label>
-                </div>
+            <div className='custom-control custom-checkbox'>
+                <input
+                    id='checkDoOcr'
+                    name={input.name}
+                    type={type}
+                    className='custom-control-input'
+                    onChange={event => this.handleDoOcrChange(event)}
+                />
+                <label className='custom-control-label' htmlFor='checkDoOcr'>Recognize Text</label>
             </div>
         );
     };
@@ -216,6 +272,33 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
+    renderCheckOperation = ({ input, type, elemId, label }: { input: HTMLInputElement, type: string, elemId: string, label: string }) => {
+        return (
+            <div className='custom-control custom-checkbox'>
+                <input
+                    id={elemId}
+                    name={input.name}
+                    type={type}
+                    className='custom-control-input'
+                    onChange={event => this.handleCheckOperationChange(event)}
+                />
+                <label className='custom-control-label' htmlFor={elemId}>{label}</label>
+            </div>
+        );
+    };
+
+    handleCheckOperationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target) {
+            this.props.selectOperation(event.target.id, event.target.checked);
+        }
+    };
+
+    handleDocumentSeparationTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        if (event.target && event.target.value) {
+            this.props.selectDocumentSeparationType(event.target.value as DocumentProcessStore.DocumentSeparationType);
+        }
+    };
+
     onModeSelect = (mode: any) => {
         this.props.selectMode(mode);
     };
@@ -227,6 +310,10 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         else if (this.props.mode === 'preview') {
             this.props.inputFile && this.props.previewDocument();
         }
+        else if (this.props.mode === 'process') {
+            this.props.inputFile && this.props.processDocument();
+        }
+
     };
 
 }
@@ -243,6 +330,8 @@ function mapStateToProps(state: ApplicationState) {
         downloadUrl: state.docProcess ? state.docProcess.downloadUrl : '',
         pixSize: state.docProcess ? state.docProcess.pixSize : 100,
         pagePreviews: state.docProcess ? state.docProcess.pagePreviews : null,
+        processOperations: state.docProcess ? state.docProcess.processOperations : undefined,
+        isProcessing: state.docProcess ? state.docProcess.isProcessing : false,
         message: state.docProcess ? state.docProcess.message : '',
         initialValues: state.docProcess
     };

@@ -24,10 +24,15 @@
   <ItemGroup>
     <None Remove="ClientApp\src\components\SignIn.js" />
     <None Remove="ClientApp\src\components\SignIn.js.map" />
+    <None Remove="ClientApp\src\store\JobSpec.ts" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\store\JobSpec.ts" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

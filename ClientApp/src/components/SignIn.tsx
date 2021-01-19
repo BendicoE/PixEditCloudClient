@@ -64,10 +64,10 @@ class SignIn extends React.PureComponent<SignInProps & InjectedFormProps<Credent
                     </form>
                 </div>
                 <div>
-                    <p>{this.props.signInError && this.props.signInError.response &&
-                            (this.props.signInError.response.status === 401 ?
+                    <p>{this.props.signInError &&
+                            (this.props.signInError.status === 401 ?
                                 <span className='text-danger'>Invalid user name, password and serial number combination :-(</span> :
-                                <span className='text-danger'>Sign in failed: { this.props.signInError.response.message }</span>)
+                                <span className='text-danger'>Sign in failed: { this.props.signInError.message }</span>)
                     }</p>
                 </div>
             </React.Fragment>

@@ -18,7 +18,14 @@ code {
     margin: 8px;
     background-color: cornflowerblue;
     text-align: center;
+    position: relative;
     display: inline-block;
     overflow: hidden;
-    vertical-align: middle;
 }
+
+    .page-thumb img {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
