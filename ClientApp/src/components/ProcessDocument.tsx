@@ -19,6 +19,10 @@ interface ProcessDocumentValues {
     doOcr: boolean;
     pixSize: number;
     pagePreviews: DocumentProcessStore.PagePreview[] | null;
+    removeBlackBorders: boolean,
+    removeBlankPages: boolean,
+    autoOrientation: boolean,
+    documentSeparationType: DocumentProcessStore.DocumentSeparationType
 }
 
 // COMPONENT
@@ -41,7 +45,8 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                     type='file'
                                     filename={this.props.inputFilename}
                                     component={this.renderInputFile}
-                                    />
+                                    disabled={this.props.isProcessing}
+                                />
                             </div>
                         </div>
                         <div className='row'>
@@ -52,20 +57,23 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                             <div className='col-sm-3'>
                                                 <Field
                                                     name='outputFormat'
-                                                    elemId='selectOutputFormat'
+                                                    selectedValue={this.props.outputFormat}
                                                     label='Output Format'
                                                     options={DocumentProcessStore.OutputFormat}
                                                     component={this.renderSelectOption}
                                                     onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleOutputFormatChange(event)}
+                                                    disabled={this.props.isProcessing}
                                                 />
                                             </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
-                                                <label>Options</label>
                                                 <Field
                                                     name='doOcr'
-                                                    component={this.renderCheckDoOcr}
-                                                    type='checkbox'
-                                                    className='custom-control-input'
+                                                    label='Recognize Text'
+                                                    isChecked={this.props.doOcr}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
                                                 />
                                             </div>
                                         </div>
@@ -77,6 +85,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                     name='pixSize'
                                                     pixSize={this.props.pixSize}
                                                     component={this.renderSelectPixSize}
+                                                    disabled={this.props.isProcessing}
                                                 />
                                             </div>
                                         </div>
@@ -85,47 +94,56 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                         <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
                                                 <Field
-                                                    name='processOperations.removeBlackBorders'
-                                                    elemId='checkRemoveBlackBorders'
-                                                    component={this.renderCheckOperation}
+                                                    name='removeBlackBorders'
                                                     label='Remove Black Borders'
-                                                    type='checkbox'
-                                                    className='custom-control-input'
+                                                    isChecked={this.props.removeBlackBorders}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
                                                 />
                                             </div>
                                         </div>
                                         <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
                                                 <Field
-                                                    name='processOperations.removeBlankPages'
-                                                    elemId='checkRemoveBlankPages'
-                                                    component={this.renderCheckOperation}
+                                                    name='removeBlankPages'
                                                     label='Remove Blank Pages'
-                                                    type='checkbox'
-                                                    className='custom-control-input'
+                                                    isChecked={this.props.removeBlankPages}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
                                                 />
                                             </div>
                                         </div>
                                         <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
                                                 <Field
-                                                    name='processOperations.autoOrientation'
-                                                    elemId='checkAutoOrientation'
-                                                    component={this.renderCheckOperation}
+                                                    name='autoOrientation'
                                                     label='Correct Page Orientation'
-                                                    type='checkbox'
-                                                    className='custom-control-input'
+                                                    isChecked={this.props.autoOrientation}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
                                                 />
                                             </div>
                                         </div>
                                         <div className='row mt-3 mb-3'>
                                             <div className='col-sm-3'>
                                                 <Field
-                                                    name='processOperations.documentSeparationType'
-                                                    elemId='selectDocumentSeparationType'
+                                                    name='doOcr'
+                                                    label='Recognize Text'
+                                                    isChecked={this.props.doOcr}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='documentSeparationType'
                                                     label='Separate Documents'
+                                                    selectedValue={this.props.documentSeparationType}
                                                     options={DocumentProcessStore.DocumentSeparationType}
                                                     component={this.renderSelectOption}
+                                                    disabled={this.props.isProcessing}
                                                     onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleDocumentSeparationTypeChange(event)}
                                                 />
                                             </div>
@@ -165,8 +183,8 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         );
     }
 
-    renderInputFile = ( { input, type, filename, meta: { touched, error, warning } }:
-                        { input: HTMLInputElement, type: string, filename: string, meta: { touched: boolean, error: string, warning: string } }) => {
+    renderInputFile = ( { input, type, filename, disabled, meta: { touched, error, warning } }:
+                        { input: HTMLInputElement, type: string, filename: string, disabled: boolean, meta: { touched: boolean, error: string, warning: string } }) => {
         return (
             <div className='custom-file w-100'>
                 <div>
@@ -178,6 +196,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                 application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation \
                                 application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook'
                         onChange={event => this.handleInputFileChange(event)}
+                        disabled={disabled}
                         />
                 </div>
                 <label className='custom-file-label' htmlFor='inputFile'>{filename || 'Choose file'}</label>
@@ -195,15 +214,16 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
-    renderSelectOption = ({ input, options, outputFormat, elemId, label, onChangeHandler }: { input: HTMLSelectElement, options: Enum, outputFormat: string, elemId: string, label: string, onChangeHandler: (event: React.ChangeEvent<HTMLSelectElement>) => any }) => {
+    renderSelectOption = ({ input, options, selectedValue, label, disabled, onChangeHandler }: { input: HTMLSelectElement, options: Enum, selectedValue: string, label: string, disabled: boolean, onChangeHandler: (event: React.ChangeEvent<HTMLSelectElement>) => any }) => {
         return (
             <div>
-                <label htmlFor={elemId}>{label}</label>
+                <label htmlFor={input.name}>{label}</label>
                 <select
-                    id={elemId}
+                    id={input.name}
                     name={input.name}
                     className='custom-select'
-                    value={outputFormat}
+                    value={selectedValue}
+                    disabled={disabled}
                     onChange={onChangeHandler}
                 >
                     {
@@ -224,36 +244,39 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
-    renderCheckDoOcr = ({ input, type }: { input: HTMLInputElement, type: string }) => {
+    renderCheckOption = ({ input, type, label, isChecked, disabled }: { input: HTMLInputElement, type: string, label: string, isChecked: boolean, disabled: boolean }) => {
         return (
             <div className='custom-control custom-checkbox'>
                 <input
-                    id='checkDoOcr'
+                    id={input.name}
                     name={input.name}
-                    type={type}
+                    type='checkbox'
                     className='custom-control-input'
-                    onChange={event => this.handleDoOcrChange(event)}
+                    checked={isChecked}
+                    disabled={disabled}
+                    onChange={event => this.handleCheckOptionChange(event)}
                 />
-                <label className='custom-control-label' htmlFor='checkDoOcr'>Recognize Text</label>
+                <label className='custom-control-label' htmlFor={input.name}>{label}</label>
             </div>
         );
     };
 
-    handleDoOcrChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleCheckOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target) {
-            this.props.selectDoOcr(event.target.checked);
+            this.props.selectOption(event.target.id, event.target.checked);
         }
     };
 
-    renderSelectPixSize = ({ input, pixSize }: { input: HTMLSelectElement, pixSize: number }) => {
+    renderSelectPixSize = ({ input, pixSize, disabled }: { input: HTMLSelectElement, pixSize: number, disabled: boolean }) => {
         return (
             <div>
                 <label htmlFor='selectPixSize'>Size in Pixels</label>
                 <select
-                    id='selectPixSize'
+                    id={input.name}
                     name={input.name}
                     className='custom-select'
                     value={pixSize}
+                    disabled={disabled}
                     onChange={event => this.handlePixSizeChange(event)}
                 >
                     <option value={80}>80 px</option>
@@ -269,27 +292,6 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
     handlePixSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if (event.target && event.target.value) {
             this.props.selectPixSize(+event.target.value);
-        }
-    };
-
-    renderCheckOperation = ({ input, type, elemId, label }: { input: HTMLInputElement, type: string, elemId: string, label: string }) => {
-        return (
-            <div className='custom-control custom-checkbox'>
-                <input
-                    id={elemId}
-                    name={input.name}
-                    type={type}
-                    className='custom-control-input'
-                    onChange={event => this.handleCheckOperationChange(event)}
-                />
-                <label className='custom-control-label' htmlFor={elemId}>{label}</label>
-            </div>
-        );
-    };
-
-    handleCheckOperationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target) {
-            this.props.selectOperation(event.target.id, event.target.checked);
         }
     };
 
@@ -330,7 +332,10 @@ function mapStateToProps(state: ApplicationState) {
         downloadUrl: state.docProcess ? state.docProcess.downloadUrl : '',
         pixSize: state.docProcess ? state.docProcess.pixSize : 100,
         pagePreviews: state.docProcess ? state.docProcess.pagePreviews : null,
-        processOperations: state.docProcess ? state.docProcess.processOperations : undefined,
+        removeBlackBorders: state.docProcess ? state.docProcess.removeBlackBorders : false,
+        removeBlankPages: state.docProcess ? state.docProcess.removeBlankPages : false,
+        autoOrientation: state.docProcess ? state.docProcess.autoOrientation : false,
+        documentSeparationType: state.docProcess ? state.docProcess.documentSeparationType : 'None' as DocumentProcessStore.DocumentSeparationType,
         isProcessing: state.docProcess ? state.docProcess.isProcessing : false,
         message: state.docProcess ? state.docProcess.message : '',
         initialValues: state.docProcess

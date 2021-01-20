@@ -30,13 +30,6 @@ export enum DocumentSeparationType {
     BlankSheets = 'Blank Sheets'
 }
 
-export interface ProcessOperations {
-    removeBlackBorders: boolean,
-    removeBlankPages: boolean,
-    autoOrientation: boolean,
-    documentSeparationType: DocumentSeparationType
-}
-
 export interface DocumentProcessState {
     mode: string;
     inputFilename: string;
@@ -48,7 +41,10 @@ export interface DocumentProcessState {
     downloadUrl: string;
     pixSize: number;
     pagePreviews: PagePreview[] | null;
-    processOperations: ProcessOperations | null;
+    removeBlackBorders: boolean,
+    removeBlankPages: boolean,
+    autoOrientation: boolean,
+    documentSeparationType: DocumentSeparationType
     isProcessing: boolean;
     message: string;
 }
@@ -70,11 +66,6 @@ interface FileSelectedAction {
 interface OutputFormatSelectedAction {
     type: 'OUTPUT_FORMAT_SELECTED';
     format: OutputFormat;
-}
-
-interface DoOcrSelectedAction {
-    type: 'DO_OCR_SELECTED';
-    selected: boolean;
 }
 
 interface ConvertDocumentAction {
@@ -126,7 +117,6 @@ type KnownAction =
     ModeSelectedAction |
     FileSelectedAction |
     OutputFormatSelectedAction |
-    DoOcrSelectedAction |
     ConvertDocumentAction |
     DocumentReadyAction |
     PixSizeSelectedAction |
@@ -161,10 +151,17 @@ export const actionCreators = {
         }
     },
 
-    selectDoOcr: (selected: boolean): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    selectOption: (id: string, selected: boolean): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
-            dispatch({ type: 'DO_OCR_SELECTED', selected: selected });
+            switch (id) {
+                case 'doOcr':
+                case 'removeBlackBorders':
+                case 'removeBlankPages':
+                case 'autoOrientation':
+                    dispatch({ type: 'OPERATION_SELECTED', id: id, selected: selected });
+                    break;
+            }
         }
     },
 
@@ -243,13 +240,6 @@ export const actionCreators = {
         }
     },
 
-    selectOperation: (id: string, selected: boolean): AppThunkAction<KnownAction> => (dispatch, getState) => {
-        const appState = getState();
-        if (appState && appState.docProcess) {
-            dispatch({ type: 'OPERATION_SELECTED', id: id, selected: selected });
-        }
-    },
-
     selectDocumentSeparationType: (separationType: DocumentSeparationType): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
@@ -266,26 +256,28 @@ export const actionCreators = {
             if (appState.docProcess.inputFile != null) {
                 let jobSpec = JobSpec.header;
                 jobSpec += JobSpec.convertProperties;
-                if (appState.docProcess.processOperations && appState.docProcess.processOperations.removeBlackBorders)
+                if (appState.docProcess.removeBlackBorders)
                     jobSpec += JobSpec.removeBlackBorders;
-                if (appState.docProcess.processOperations && appState.docProcess.processOperations.removeBlankPages)
+                if (appState.docProcess.removeBlankPages)
                     jobSpec += JobSpec.removeBlankPages;
-                if (appState.docProcess.processOperations && appState.docProcess.processOperations.autoOrientation)
+                if (appState.docProcess.autoOrientation)
                     jobSpec += JobSpec.autoOrientation;
-                if (appState.docProcess.processOperations) {
-                    switch (appState.docProcess.processOperations.documentSeparationType as string) {
-                        case 'None':
-                            break;
-                        case 'QRCodes':
-                            jobSpec += JobSpec.separationQRCodes;
-                            break;
-                        case 'GenericType39':
-                            jobSpec += JobSpec.separationGenericBarcodes;
-                            break;
-                        case 'BlankSheets':
-                            jobSpec += JobSpec.separationBlankSheets;
-                            break;
-                    }
+                if (appState.docProcess.doOcr)
+                    jobSpec += JobSpec.ocr;
+
+                switch (appState.docProcess.documentSeparationType as string) {
+                    default:
+                    case 'None':
+                        break;
+                    case 'QRCodes':
+                        jobSpec += JobSpec.separationQRCodes;
+                        break;
+                    case 'GenericType39':
+                        jobSpec += JobSpec.separationGenericBarcodes;
+                        break;
+                    case 'BlankSheets':
+                        jobSpec += JobSpec.separationBlankSheets;
+                        break;
                 }
                 jobSpec += JobSpec.saveProperties;
                 jobSpec += JobSpec.footer;
@@ -332,12 +324,10 @@ const unloadedState: DocumentProcessState = {
     downloadUrl: '',
     pixSize: 100,
     pagePreviews: null,
-    processOperations: {
-        removeBlackBorders: true,
-        removeBlankPages: true,
-        autoOrientation: true,
-        documentSeparationType: DocumentSeparationType.None
-    },
+    removeBlackBorders: true,
+    removeBlankPages: true,
+    autoOrientation: true,
+    documentSeparationType: 'None' as DocumentSeparationType,
     isProcessing: false,
     message: ''
 };
@@ -373,14 +363,6 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
             return {
                 ...state,
                 outputFormat: action.format,
-                outputFilename: '',
-                downloadUrl: '',
-                message: ''
-            };
-        case 'DO_OCR_SELECTED':
-            return {
-                ...state,
-                doOcr: action.selected,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''
@@ -428,13 +410,10 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
         case 'OPERATION_SELECTED':
             return {
                 ...state,
-                processOperations: {
-                    ...state.processOperations,
-                    removeBlackBorders: action.id === 'checkRemoveBlackBorders' ? action.selected : (state.processOperations ? state.processOperations.removeBlackBorders : false),
-                    removeBlankPages: action.id === 'checkRemoveBlankPages' ? action.selected : (state.processOperations ? state.processOperations.removeBlankPages : false),
-                    autoOrientation: action.id === 'checkAutoOrientation' ? action.selected : (state.processOperations ? state.processOperations.autoOrientation : false),
-                    documentSeparationType: (state.processOperations ? state.processOperations.documentSeparationType : DocumentSeparationType.None)
-                },
+                doOcr: action.id === 'doOcr' ? action.selected : state.doOcr,
+                removeBlackBorders: action.id === 'removeBlackBorders' ? action.selected : state.removeBlackBorders,
+                removeBlankPages: action.id === 'removeBlankPages' ? action.selected : state.removeBlankPages,
+                autoOrientation: action.id === 'autoOrientation' ? action.selected : state.autoOrientation,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''
@@ -442,13 +421,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
         case 'DOCUMENT_SEPARATION_TYPE_SELECTED':
             return {
                 ...state,
-                processOperations: {
-                    ...state.processOperations,
-                    removeBlackBorders: state.processOperations ? state.processOperations.removeBlackBorders : false,
-                    removeBlankPages: state.processOperations ? state.processOperations.removeBlankPages : false,
-                    autoOrientation: state.processOperations ? state.processOperations.autoOrientation : false,
-                    documentSeparationType: action.separationType
-                },
+                documentSeparationType: action.separationType,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''
