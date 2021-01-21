@@ -482,6 +482,32 @@ export const medianFilter =
         },
 `;
 
+export const imageToning =
+`
+        {
+            "$type": "ImageToning",
+            "CmdName": "Image Toning",
+            "DodgeLevel": 20,
+            "DodgePct": 100,
+            "DarkestBkGnd": 100,
+            "DodgeToBkGnd": true,
+            "BurnLevel": 20,
+            "BurnPct": 100,
+            "LightestForeGnd": 150,
+            "BurnToForeGnd": true
+        },
+`;
+
+export const colorDropout =
+    `
+        {
+            "$type": "ColorDropout",
+            "CmdName": "Color Dropout",
+            "Color": "Red",
+            "ColorTolerance": 10.0
+        },
+`;
+
 export const docStamp =
 `
         {

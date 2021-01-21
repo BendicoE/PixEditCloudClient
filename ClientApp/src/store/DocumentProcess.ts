@@ -44,6 +44,8 @@ export interface DocumentProcessState {
     removeBlackBorders: boolean,
     removeBlankPages: boolean,
     autoOrientation: boolean,
+    deskew: boolean,
+    enhanceText: boolean,
     documentSeparationType: DocumentSeparationType
     isProcessing: boolean;
     message: string;
@@ -159,6 +161,7 @@ export const actionCreators = {
                 case 'removeBlackBorders':
                 case 'removeBlankPages':
                 case 'autoOrientation':
+                case 'enhanceText':
                     dispatch({ type: 'OPERATION_SELECTED', id: id, selected: selected });
                     break;
             }
@@ -262,6 +265,10 @@ export const actionCreators = {
                     jobSpec += JobSpec.removeBlankPages;
                 if (appState.docProcess.autoOrientation)
                     jobSpec += JobSpec.autoOrientation;
+                if (appState.docProcess.deskew)
+                    jobSpec += JobSpec.deskew;
+                if (appState.docProcess.enhanceText)
+                    jobSpec += JobSpec.imageToning;
                 if (appState.docProcess.doOcr)
                     jobSpec += JobSpec.ocr;
 
@@ -327,6 +334,8 @@ const unloadedState: DocumentProcessState = {
     removeBlackBorders: true,
     removeBlankPages: true,
     autoOrientation: true,
+    deskew: true,
+    enhanceText: false,
     documentSeparationType: 'None' as DocumentSeparationType,
     isProcessing: false,
     message: ''
@@ -414,6 +423,8 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 removeBlackBorders: action.id === 'removeBlackBorders' ? action.selected : state.removeBlackBorders,
                 removeBlankPages: action.id === 'removeBlankPages' ? action.selected : state.removeBlankPages,
                 autoOrientation: action.id === 'autoOrientation' ? action.selected : state.autoOrientation,
+                deskew: action.id === 'deskew' ? action.selected : state.deskew,
+                enhanceText: action.id === 'enhanceText' ? action.selected : state.enhanceText,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''

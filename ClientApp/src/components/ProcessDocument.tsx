@@ -22,6 +22,8 @@ interface ProcessDocumentValues {
     removeBlackBorders: boolean,
     removeBlankPages: boolean,
     autoOrientation: boolean,
+    deskew: boolean,
+    enhanceText: boolean,
     documentSeparationType: DocumentProcessStore.DocumentSeparationType
 }
 
@@ -119,6 +121,28 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                     name='autoOrientation'
                                                     label='Correct Page Orientation'
                                                     isChecked={this.props.autoOrientation}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='deskew'
+                                                    label='Deskew Pages (Straighten)'
+                                                    isChecked={this.props.deskew}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='enhanceText'
+                                                    label='Enhance Text'
+                                                    isChecked={this.props.enhanceText}
                                                     component={this.renderCheckOption}
                                                     disabled={this.props.isProcessing}
                                                 />
@@ -335,6 +359,8 @@ function mapStateToProps(state: ApplicationState) {
         removeBlackBorders: state.docProcess ? state.docProcess.removeBlackBorders : false,
         removeBlankPages: state.docProcess ? state.docProcess.removeBlankPages : false,
         autoOrientation: state.docProcess ? state.docProcess.autoOrientation : false,
+        deskew: state.docProcess ? state.docProcess.deskew : false,
+        enhanceText: state.docProcess ? state.docProcess.enhanceText : false,
         documentSeparationType: state.docProcess ? state.docProcess.documentSeparationType : 'None' as DocumentProcessStore.DocumentSeparationType,
         isProcessing: state.docProcess ? state.docProcess.isProcessing : false,
         message: state.docProcess ? state.docProcess.message : '',
