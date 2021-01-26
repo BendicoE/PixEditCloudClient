@@ -1,6 +1,9 @@
 ﻿import { Action, Reducer } from 'redux';
 import { AppThunkAction } from './';
 import axios from 'axios';
+import packageJson from '../../package.json';
+
+export const appVersion = packageJson.version;
 
 //export const apiBaseUrl: string = 'https://pixeditservercloud.azure-api.net';
 export const apiBaseUrl: string = 'https://pdfconvertmicroservice20200922140548-staging.azurewebsites.net/convertpdf';

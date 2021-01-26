@@ -10,8 +10,8 @@ export interface ApiInfoState {
 }
 
 export interface ApiInfo {
-    appName: string;
-    appVersion: string;
+    name: string;
+    version: string;
     publishedDate: string;
     unavailable: boolean;
 }
@@ -34,9 +34,9 @@ export const actionCreators = {
             const url = Globals.apiBaseUrl + '/';
             axios.get(url)
                 .then((response) => {
-                    dispatch({ type: 'RECEIVE_API_INFO', apiInfo: { appName: response.data.appName, appVersion: response.data.appVersion, publishedDate: response.data.publishedDate, unavailable: false } });
+                    dispatch({ type: 'RECEIVE_API_INFO', apiInfo: { name: response.data.appName, version: response.data.appVersion, publishedDate: response.data.publishedDate, unavailable: false } });
                 }, (error) => {
-                    dispatch({ type: 'RECEIVE_API_INFO', apiInfo: { appName: '-', appVersion: '-', publishedDate: '-', unavailable: true } });    
+                    dispatch({ type: 'RECEIVE_API_INFO', apiInfo: { name: '-', version: '-', publishedDate: '-', unavailable: true } });    
                 });
         }
     }
@@ -45,7 +45,7 @@ export const actionCreators = {
 // REDUCER
 
 const unloadedState: ApiInfoState = {
-    apiInfo: { appName: '', appVersion: '', publishedDate: '', unavailable: false }
+    apiInfo: { name: '', version: '', publishedDate: '', unavailable: false }
 };
 
 export const reducer: Reducer<ApiInfoState> = (state: ApiInfoState | undefined, incomingAction: Action): ApiInfoState => {

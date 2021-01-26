@@ -24,7 +24,8 @@ interface ProcessDocumentValues {
     autoOrientation: boolean,
     deskew: boolean,
     enhanceText: boolean,
-    documentSeparationType: DocumentProcessStore.DocumentSeparationType
+    documentSeparationType: DocumentProcessStore.DocumentSeparationType,
+    exportFormat: DocumentProcessStore.ExportFormat
 }
 
 // COMPONENT
@@ -172,8 +173,23 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                 />
                                             </div>
                                         </div>
-
                                     </Tab>
+                                    <Tab eventKey='export' title='Convert to Office' disabled={this.props.isProcessing}>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='exportFormat'
+                                                    selectedValue={this.props.exportFormat}
+                                                    label='Export Format'
+                                                    options={DocumentProcessStore.ExportFormat}
+                                                    component={this.renderSelectOption}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleExportFormatChange(event)}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                        </div>
+                                    </Tab>
+
                                 </Tabs>
                             </div>
                         </div>
@@ -188,7 +204,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     <p>{this.props.message}</p>
                 </div>
                 {
-                    (this.props.mode === 'convert' || this.props.mode === 'process') && this.props.downloadUrl ?
+                    (this.props.mode === 'convert' || this.props.mode === 'process' || this.props.mode === 'export') && this.props.downloadUrl ?
                         <div>
                             <h2><a href={this.props.downloadUrl || ''} target='_blank' rel='noopener noreferrer' download={this.props.outputFilename}>{this.props.outputFilename || ''}</a></h2>
                         </div>
@@ -325,6 +341,12 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
+    handleExportFormatChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        if (event.target && event.target.value) {
+            this.props.selectExportFormat(event.target.value as DocumentProcessStore.ExportFormat);
+        }
+    };
+
     onModeSelect = (mode: any) => {
         this.props.selectMode(mode);
     };
@@ -339,32 +361,39 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         else if (this.props.mode === 'process') {
             this.props.inputFile && this.props.processDocument();
         }
+        else if (this.props.mode === 'export') {
+            this.props.inputFile && this.props.exportDocument();
+        }
 
     };
 
 }
 
 function mapStateToProps(state: ApplicationState) {
-    return {
-        mode: state.docProcess ? state.docProcess.mode : 'convert',
-        inputFilename: state.docProcess ? state.docProcess.inputFilename : '',
-        inputMimeType: state.docProcess ? state.docProcess.inputMimeType : '',
-        inputFile: state.docProcess ? state.docProcess.inputFile : null,
-        outputFormat: state.docProcess ? state.docProcess.outputFormat : '',
-        doOcr: state.docProcess ? state.docProcess.doOcr : false,
-        outputFilename: state.docProcess ? state.docProcess.outputFilename : '',
-        downloadUrl: state.docProcess ? state.docProcess.downloadUrl : '',
-        pixSize: state.docProcess ? state.docProcess.pixSize : 100,
-        pagePreviews: state.docProcess ? state.docProcess.pagePreviews : null,
-        removeBlackBorders: state.docProcess ? state.docProcess.removeBlackBorders : false,
-        removeBlankPages: state.docProcess ? state.docProcess.removeBlankPages : false,
-        autoOrientation: state.docProcess ? state.docProcess.autoOrientation : false,
-        deskew: state.docProcess ? state.docProcess.deskew : false,
-        enhanceText: state.docProcess ? state.docProcess.enhanceText : false,
-        documentSeparationType: state.docProcess ? state.docProcess.documentSeparationType : 'None' as DocumentProcessStore.DocumentSeparationType,
-        isProcessing: state.docProcess ? state.docProcess.isProcessing : false,
-        message: state.docProcess ? state.docProcess.message : '',
-        initialValues: state.docProcess
+    if (state.docProcess)
+        return { ...(state.docProcess), initialValues: state.docProcess }
+    else
+        return {
+            mode: 'convert',
+            inputFilename: '',
+            inputMimeType: '',
+            inputFile: null,
+            outputFormat: '',
+            doOcr: false,
+            outputFilename: '',
+            downloadUrl: '',
+            pixSize: 100,
+            pagePreviews: null,
+            removeBlackBorders: false,
+            removeBlankPages: false,
+            autoOrientation: false,
+            deskew: false,
+            enhanceText: false,
+            documentSeparationType: '',
+            exportFormat: '',
+            isProcessing: false,
+            message: '',
+            initialValues: undefined
     };
 }
 

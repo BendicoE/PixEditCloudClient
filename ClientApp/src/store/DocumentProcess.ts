@@ -2,7 +2,46 @@
 import { AppThunkAction } from '.';
 import axios from 'axios';
 import * as Globals from './Globals';
-import * as JobSpec from './JobSpec'
+import {
+    cmdJobTicketHeader,
+    cmdRemoveBlackBorders,
+    cmdRemovePunchHoles,
+    cmdRemoveBlankPages,
+    cmdAutoOrientation,
+    cmdDeskew,
+    cmdAutoReduceColors,
+    cmdEraseBorders,
+    cmdTurn,
+    cmdEnhanceContrast,
+    cmdSplitBooklet,
+    cmdOcr,
+    cmdSplitPages,
+    cmdSeparationGenericBarcodes,
+    cmdSeparationSIBarcodes,
+    cmdSeparationTechSoftSepSheets,
+    cmdSeparationEphorteSepSheets,
+    cmdSeparationAcosSepSheets,
+    cmdSeparationUDI,
+    cmdSeparationBlankSheets,
+    cmdSeparationFixedPageCount,
+    cmdSeparationQRCodes,
+    cmdCombineDocObject,
+    cmdBrightnessAndContrast,
+    cmdAutoCrop,
+    cmdCropHalfPageSize,
+    cmdScaleDownPages,
+    cmdResizeToStandardPageSize,
+    cmdRemovePixelNoise,
+    cmdDespeckle,
+    cmdMedianFilter,
+    cmdImageToning,
+    cmdColorDropout,
+    cmdDocStamp,
+    cmdSaveProperties,
+    cmdConvertProperties,
+    cmdOcrExport,
+    cmdJobTicketFooter
+} from './ProcessCommands';
 
 // STATE
 
@@ -30,6 +69,29 @@ export enum DocumentSeparationType {
     BlankSheets = 'Blank Sheets'
 }
 
+export enum ExportFormat {
+    MSWord = 'Microsoft Word (DOCX)',
+    MSExcel = 'Microsoft Excel (XLSX)',
+    MSPowerPoint = 'Microsoft PowerPoint (PPTX)'
+}
+
+export enum ExportFormatEnum {
+    PlainText = 0,
+    HTML = 1,
+    RTF = 2,
+    PDF = 3,
+    CSV = 4,
+    WordML = 5,
+    ExcelML = 6,
+    OpenDoc = 7,
+    OpenXML = 8,
+    MicrosoftWord = 9,
+    MicrosoftExcel = 10,
+    EPUB = 11,
+    MicrosoftPowerPoint = 12
+};
+
+
 export interface DocumentProcessState {
     mode: string;
     inputFilename: string;
@@ -46,9 +108,10 @@ export interface DocumentProcessState {
     autoOrientation: boolean,
     deskew: boolean,
     enhanceText: boolean,
-    documentSeparationType: DocumentSeparationType
-    isProcessing: boolean;
-    message: string;
+    documentSeparationType: DocumentSeparationType,
+    exportFormat: ExportFormat,
+    isProcessing: boolean,
+    message: string
 }
 
 // ACTIONS
@@ -105,6 +168,11 @@ interface DocumentSeparationTypeSelectedAction {
     separationType: DocumentSeparationType;
 }
 
+interface DExportFormatSelectedAction {
+    type: 'EXPORT_FORMAT_SELECTED';
+    format: ExportFormat;
+}
+
 interface ProcessDocumentAction {
     type: 'PROCESS_DOCUMENT';
 }
@@ -126,6 +194,7 @@ type KnownAction =
     PreviewReadyAction |
     OperationSelectedAction |
     DocumentSeparationTypeSelectedAction |
+    DExportFormatSelectedAction |
     ProcessDocumentAction |
     ProcessFailedAction;
 
@@ -257,37 +326,37 @@ export const actionCreators = {
             const url = Globals.apiBaseUrl + '/Process';
             const data = new FormData();
             if (appState.docProcess.inputFile != null) {
-                let jobSpec = JobSpec.header;
-                jobSpec += JobSpec.convertProperties;
+                let jobSpec = cmdJobTicketHeader();
+                jobSpec += cmdConvertProperties();
                 if (appState.docProcess.removeBlackBorders)
-                    jobSpec += JobSpec.removeBlackBorders;
+                    jobSpec += cmdRemoveBlackBorders();
                 if (appState.docProcess.removeBlankPages)
-                    jobSpec += JobSpec.removeBlankPages;
+                    jobSpec += cmdRemoveBlankPages();
                 if (appState.docProcess.autoOrientation)
-                    jobSpec += JobSpec.autoOrientation;
+                    jobSpec += cmdAutoOrientation();
                 if (appState.docProcess.deskew)
-                    jobSpec += JobSpec.deskew;
+                    jobSpec += cmdDeskew();
                 if (appState.docProcess.enhanceText)
-                    jobSpec += JobSpec.imageToning;
+                    jobSpec += cmdImageToning();
                 if (appState.docProcess.doOcr)
-                    jobSpec += JobSpec.ocr;
+                    jobSpec += cmdOcr();
 
                 switch (appState.docProcess.documentSeparationType as string) {
                     default:
                     case 'None':
                         break;
                     case 'QRCodes':
-                        jobSpec += JobSpec.separationQRCodes;
+                        jobSpec += cmdSeparationQRCodes();
                         break;
                     case 'GenericType39':
-                        jobSpec += JobSpec.separationGenericBarcodes;
+                        jobSpec += cmdSeparationGenericBarcodes();
                         break;
                     case 'BlankSheets':
-                        jobSpec += JobSpec.separationBlankSheets;
+                        jobSpec += cmdSeparationBlankSheets();
                         break;
                 }
-                jobSpec += JobSpec.saveProperties;
-                jobSpec += JobSpec.footer;
+                jobSpec += cmdSaveProperties();
+                jobSpec += cmdJobTicketFooter();
                 data.append('file', new Blob([jobSpec], { type: 'application/json'}), 'jobspec.json');
                 data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
                 const reader = new window.FileReader();
@@ -298,6 +367,70 @@ export const actionCreators = {
                             headers: {
                                 'Authorization': 'Bearer ' + appState.globals.authToken,
                                 'Accept': 'application/pdf, application/zip, application/json'
+                            }
+                        }).then((response) => {
+                            let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
+                            respFilename = respFilename.replace(/^"+|"+$/g, '');
+                            let respMimeType = response.headers["content-type"];
+                            const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
+                            dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
+                        }, (error) => {
+                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                        });
+                    }
+                };
+                reader.readAsDataURL(appState.docProcess.inputFile);
+            }
+        }
+    },
+
+    selectExportFormat: (format: ExportFormat): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'EXPORT_FORMAT_SELECTED', format: format });
+        }
+    },
+
+    exportDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'PROCESS_DOCUMENT' });
+            const url = Globals.apiBaseUrl + '/Process';
+            const data = new FormData();
+            if (appState.docProcess.inputFile != null) {
+                let jobSpec = cmdJobTicketHeader();
+                jobSpec += cmdConvertProperties();
+                jobSpec += cmdRemoveBlackBorders();
+                jobSpec += cmdAutoOrientation();
+                jobSpec += cmdDeskew();
+                jobSpec += cmdImageToning(undefined, undefined, undefined, undefined, undefined, undefined, 150, undefined);
+
+                var ocrExportFormat;
+                switch (appState.docProcess.exportFormat as string) {
+                    default:
+                    case 'MSWord':
+                        ocrExportFormat = ExportFormatEnum.MicrosoftWord;
+                        break;
+                    case 'MSExcel':
+                        ocrExportFormat = ExportFormatEnum.MicrosoftExcel;
+                        break;
+                    case 'MSPowerPoint':
+                        ocrExportFormat = ExportFormatEnum.MicrosoftPowerPoint;
+                        break;
+                }
+                jobSpec += cmdOcrExport(ocrExportFormat);
+                jobSpec += cmdJobTicketFooter();
+
+                data.append('file', new Blob([jobSpec], { type: 'application/json' }), 'jobspec.json');
+                data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
+                const reader = new window.FileReader();
+                reader.onloadend = () => {
+                    if (appState.globals) {
+                        axios.post(url, data, {
+                            responseType: 'blob',
+                            headers: {
+                                'Authorization': 'Bearer ' + appState.globals.authToken,
+                                'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessinml.document, application/vnd.openxmlformats-officedocument.presentationml.presentation, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                             }
                         }).then((response) => {
                             let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
@@ -337,6 +470,7 @@ const unloadedState: DocumentProcessState = {
     deskew: true,
     enhanceText: false,
     documentSeparationType: 'None' as DocumentSeparationType,
+    exportFormat: ExportFormat.MSWord,
     isProcessing: false,
     message: ''
 };
@@ -433,6 +567,14 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
             return {
                 ...state,
                 documentSeparationType: action.separationType,
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
+        case 'EXPORT_FORMAT_SELECTED':
+            return {
+                ...state,
+                exportFormat: action.format,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''
