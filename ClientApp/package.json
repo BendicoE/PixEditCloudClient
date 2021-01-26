@@ -1,6 +1,6 @@
 {
   "name": "pixeditcloudclient",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "private": true,
   "dependencies": {
     "bootstrap": "^4.3.1",
@@ -44,7 +44,7 @@
   "scripts": {
     "start": "react-scripts start",
     "generate-build-version": "node generate-build-version",
-    "prebuild": "npm run generate-build-version",
+    "prebuild": "(npm version patch) & (npm run generate-build-version)",
     "build": "react-scripts build",
     "test": "cross-env CI=true react-scripts test --env=jsdom",
     "eject": "react-scripts eject",

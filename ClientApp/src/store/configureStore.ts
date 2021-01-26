@@ -21,11 +21,16 @@ export default function configureStore(history: History, initialState?: Applicat
         ['inputFilename', 'outputFilename', 'inputFile', 'downloadUrl', 'pagePreviews', 'isProcessing', 'message']
     );
 
+    const blacklistFilter2 = createBlacklistFilter(
+        'globals',
+        ['authToken']
+    );
+
      const persistConfig = {
          key: 'root',
          storage: storage,
          whitelist: ['globals', 'docProcess'],
-         transforms: [blacklistFilter]
+         transforms: [blacklistFilter, blacklistFilter2]
      }
 
     const rootReducer = combineReducers({

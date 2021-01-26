@@ -5,7 +5,7 @@ import packageJson from '../../package.json';
 
 export const appVersion = packageJson.version;
 
-//export const apiBaseUrl: string = 'https://pixeditservercloud.azure-api.net';
+//export const apiBaseUrl: string = 'https://api.pixeditcloud.com';
 export const apiBaseUrl: string = 'https://pdfconvertmicroservice20200922140548-staging.azurewebsites.net/convertpdf';
 //export const apiBaseUrl: string = 'https://localhost:44321/convertpdf';
 
