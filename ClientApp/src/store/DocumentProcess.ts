@@ -104,6 +104,7 @@ export interface DocumentProcessState {
     pixSize: number;
     pagePreviews: PagePreview[] | null;
     removeBlackBorders: boolean,
+    removePunchHoles: boolean,
     removeBlankPages: boolean,
     autoOrientation: boolean,
     deskew: boolean,
@@ -228,8 +229,10 @@ export const actionCreators = {
             switch (id) {
                 case 'doOcr':
                 case 'removeBlackBorders':
+                case 'removePunchHoles':
                 case 'removeBlankPages':
                 case 'autoOrientation':
+                case 'deskew':
                 case 'enhanceText':
                     dispatch({ type: 'OPERATION_SELECTED', id: id, selected: selected });
                     break;
@@ -330,6 +333,8 @@ export const actionCreators = {
                 jobSpec += cmdConvertProperties();
                 if (appState.docProcess.removeBlackBorders)
                     jobSpec += cmdRemoveBlackBorders();
+                if (appState.docProcess.removePunchHoles)
+                    jobSpec += cmdRemovePunchHoles();
                 if (appState.docProcess.removeBlankPages)
                     jobSpec += cmdRemoveBlankPages();
                 if (appState.docProcess.autoOrientation)
@@ -401,6 +406,7 @@ export const actionCreators = {
                 let jobSpec = cmdJobTicketHeader();
                 jobSpec += cmdConvertProperties();
                 jobSpec += cmdRemoveBlackBorders();
+                jobSpec += cmdRemovePunchHoles();
                 jobSpec += cmdAutoOrientation();
                 jobSpec += cmdDeskew();
                 jobSpec += cmdImageToning(undefined, undefined, undefined, undefined, undefined, undefined, 150, undefined);
@@ -465,6 +471,7 @@ const unloadedState: DocumentProcessState = {
     pixSize: 100,
     pagePreviews: null,
     removeBlackBorders: true,
+    removePunchHoles: true,
     removeBlankPages: true,
     autoOrientation: true,
     deskew: true,
@@ -555,6 +562,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 ...state,
                 doOcr: action.id === 'doOcr' ? action.selected : state.doOcr,
                 removeBlackBorders: action.id === 'removeBlackBorders' ? action.selected : state.removeBlackBorders,
+                removePunchHoles: action.id === 'removePunchHoles' ? action.selected : state.removePunchHoles,
                 removeBlankPages: action.id === 'removeBlankPages' ? action.selected : state.removeBlankPages,
                 autoOrientation: action.id === 'autoOrientation' ? action.selected : state.autoOrientation,
                 deskew: action.id === 'deskew' ? action.selected : state.deskew,

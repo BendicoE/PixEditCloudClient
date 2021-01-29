@@ -20,6 +20,7 @@ interface ProcessDocumentValues {
     pixSize: number;
     pagePreviews: DocumentProcessStore.PagePreview[] | null;
     removeBlackBorders: boolean,
+    removePunchHoles: boolean,
     removeBlankPages: boolean,
     autoOrientation: boolean,
     deskew: boolean,
@@ -100,6 +101,17 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                     name='removeBlackBorders'
                                                     label='Remove Black Borders'
                                                     isChecked={this.props.removeBlackBorders}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='removePunchHoles'
+                                                    label='Remove Punch Holes'
+                                                    isChecked={this.props.removePunchHoles}
                                                     component={this.renderCheckOption}
                                                     disabled={this.props.isProcessing}
                                                 />
@@ -385,6 +397,7 @@ function mapStateToProps(state: ApplicationState) {
             pixSize: 100,
             pagePreviews: null,
             removeBlackBorders: false,
+            removePunchHoles: false,
             removeBlankPages: false,
             autoOrientation: false,
             deskew: false,
