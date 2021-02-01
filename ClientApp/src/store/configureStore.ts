@@ -6,7 +6,7 @@ import { ApplicationState, reducers } from './';
 import { reducer as formReducer } from 'redux-form';
 import { persistStore, persistReducer } from 'redux-persist';
 import { createBlacklistFilter } from 'redux-persist-transform-filter';
-import storage from 'redux-persist/lib/storage';
+import storage from 'redux-persist/lib/storage/session';
 
 
 
@@ -21,16 +21,11 @@ export default function configureStore(history: History, initialState?: Applicat
         ['inputFilename', 'outputFilename', 'inputFile', 'downloadUrl', 'pagePreviews', 'isProcessing', 'message']
     );
 
-    const blacklistFilter2 = createBlacklistFilter(
-        'globals',
-        ['authToken']
-    );
-
      const persistConfig = {
          key: 'root',
          storage: storage,
          whitelist: ['globals', 'docProcess'],
-         transforms: [blacklistFilter, blacklistFilter2]
+         transforms: [blacklistFilter]
      }
 
     const rootReducer = combineReducers({
@@ -39,7 +34,7 @@ export default function configureStore(history: History, initialState?: Applicat
         router: connectRouter(history)
     });
  
-    const persistedReducer = persistReducer(persistConfig, rootReducer); // create a persisted reducer
+    const persistedReducer = persistReducer(persistConfig, rootReducer);
 
     const enhancers = [];
     const windowIfDefined = typeof window === 'undefined' ? null : window as any;

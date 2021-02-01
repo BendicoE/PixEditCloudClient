@@ -30,7 +30,7 @@ interface SignedOutAction {
     type: 'SIGNED_OUT';
 }
 
-type KnownAction = SignedInAction | SignInFailedAction | SignedOutAction;
+export type KnownAction = SignedInAction | SignInFailedAction | SignedOutAction;
 
 // ACTION CREATORS
 

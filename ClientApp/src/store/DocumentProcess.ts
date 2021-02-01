@@ -183,7 +183,6 @@ interface ProcessFailedAction {
     error: string;
 }
 
-
 type KnownAction =
     ModeSelectedAction |
     FileSelectedAction |
@@ -240,7 +239,7 @@ export const actionCreators = {
         }
     },
 
-    convertDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    convertDocument: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
             dispatch({ type: 'CONVERT_DOCUMENT' });
@@ -268,7 +267,13 @@ export const actionCreators = {
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                                if (error.response.status === 401) {
+                                    dispatch({ type: 'PROCESS_FAILED', error: '' });
+                                    dispatch({ type: 'SIGNED_OUT' });
+                                }
+                                else {
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                }
                         });
                     }
                 };
@@ -284,7 +289,7 @@ export const actionCreators = {
         }
     },
 
-    previewDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    previewDocument: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
             dispatch({ type: 'PREVIEW_DOCUMENT' });
@@ -306,7 +311,13 @@ export const actionCreators = {
                         }).then((response) => {
                             dispatch({ type: 'PREVIEW_READY', pagePreviews: response.data });
                         }, (error) => {
-                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                                if (error.response.status === 401) {
+                                    dispatch({ type: 'PROCESS_FAILED', error: '' });
+                                    dispatch({ type: 'SIGNED_OUT' });
+                                }
+                                else {
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                }
                         });
                     }
                 };
@@ -322,7 +333,7 @@ export const actionCreators = {
         }
     },
 
-    processDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    processDocument: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
             dispatch({ type: 'PROCESS_DOCUMENT' });
@@ -380,7 +391,13 @@ export const actionCreators = {
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                                if (error.response.status === 401) {
+                                    dispatch({ type: 'PROCESS_FAILED', error: '' });
+                                    dispatch({ type: 'SIGNED_OUT' });
+                                }
+                                else {
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                }
                         });
                     }
                 };
@@ -396,7 +413,7 @@ export const actionCreators = {
         }
     },
 
-    exportDocument: (): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    exportDocument: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
             dispatch({ type: 'PROCESS_DOCUMENT' });
@@ -435,8 +452,7 @@ export const actionCreators = {
                         axios.post(url, data, {
                             responseType: 'blob',
                             headers: {
-                                'Authorization': 'Bearer ' + appState.globals.authToken,
-                                'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessinml.document, application/vnd.openxmlformats-officedocument.presentationml.presentation, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                                'Authorization': 'Bearer ' + appState.globals.authToken
                             }
                         }).then((response) => {
                             let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
@@ -445,7 +461,13 @@ export const actionCreators = {
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                            dispatch({ type: 'PROCESS_FAILED', error: error });
+                                if (error.response.status === 401) {
+                                    dispatch({ type: 'PROCESS_FAILED', error: '' });
+                                    dispatch({ type: 'SIGNED_OUT' });
+                                }
+                                else {
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                }
                         });
                     }
                 };
