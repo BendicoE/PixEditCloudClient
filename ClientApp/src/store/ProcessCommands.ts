@@ -32,7 +32,7 @@ const cmdRemoveBlankPages = () => `
             "RightBottomMargins": "5, 5"
         },
 `;
-
+    
 const cmdAutoOrientation = () => `
         {
             "$type": "AutoOrientation",

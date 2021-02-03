@@ -267,12 +267,12 @@ export const actionCreators = {
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                                if (error.response.status === 401) {
+                                if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error });
                                 }
                         });
                     }
@@ -311,12 +311,12 @@ export const actionCreators = {
                         }).then((response) => {
                             dispatch({ type: 'PREVIEW_READY', pagePreviews: response.data });
                         }, (error) => {
-                                if (error.response.status === 401) {
+                                if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error });
                                 }
                         });
                     }
@@ -391,12 +391,12 @@ export const actionCreators = {
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                                if (error.response.status === 401) {
+                                if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error });
                                 }
                         });
                     }
@@ -461,12 +461,12 @@ export const actionCreators = {
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }, (error) => {
-                                if (error.response.status === 401) {
+                                if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error.response });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error });
                                 }
                         });
                     }
