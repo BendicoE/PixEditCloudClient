@@ -102,6 +102,7 @@ export interface DocumentProcessState {
     outputFilename: string;
     downloadUrl: string;
     pixSize: number;
+    previewAllPages: boolean;
     pagePreviews: PagePreview[] | null;
     removeBlackBorders: boolean,
     removePunchHoles: boolean,
@@ -149,6 +150,11 @@ interface PixSizeSelectedAction {
     pixSize: number;
 }
 
+interface PreviewAllPagesSelectedAction {
+    type: 'PREVIEWALLPAGES_SELECTED';
+    previewAllPages: boolean;
+}
+
 interface PreviewDocumentAction {
     type: 'PREVIEW_DOCUMENT';
 }
@@ -190,6 +196,7 @@ type KnownAction =
     ConvertDocumentAction |
     DocumentReadyAction |
     PixSizeSelectedAction |
+    PreviewAllPagesSelectedAction |
     PreviewDocumentAction |
     PreviewReadyAction |
     OperationSelectedAction |
@@ -234,6 +241,9 @@ export const actionCreators = {
                 case 'deskew':
                 case 'enhanceText':
                     dispatch({ type: 'OPERATION_SELECTED', id: id, selected: selected });
+                    break;
+                case 'previewAllPages':
+                    dispatch({ type: 'PREVIEWALLPAGES_SELECTED', previewAllPages: selected });
                     break;
             }
         }
@@ -306,7 +316,8 @@ export const actionCreators = {
                                 'Accept': 'application/json'
                             },
                             params: {
-                                'PixSize': appState.docProcess ? appState.docProcess.pixSize : 100
+                                'PixSize': appState.docProcess ? appState.docProcess.pixSize : 100,
+                                'MaxPages': appState.docProcess ? (appState.docProcess.previewAllPages ? -1 : 1) : 1
                             }
                         }).then((response) => {
                             dispatch({ type: 'PREVIEW_READY', pagePreviews: response.data });
@@ -491,6 +502,7 @@ const unloadedState: DocumentProcessState = {
     outputFilename: '',
     downloadUrl: '',
     pixSize: 100,
+    previewAllPages: true,
     pagePreviews: null,
     removeBlackBorders: true,
     removePunchHoles: true,
@@ -560,6 +572,13 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
             return {
                 ...state,
                 pixSize: action.pixSize,
+                pagePreviews: null,
+                message: ''
+            };
+        case 'PREVIEWALLPAGES_SELECTED':
+            return {
+                ...state,
+                previewAllPages: action.previewAllPages,
                 pagePreviews: null,
                 message: ''
             };

@@ -93,6 +93,17 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                 />
                                             </div>
                                         </div>
+                                        <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='previewAllPages'
+                                                    label='All Pages'
+                                                    isChecked={this.props.previewAllPages}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                        </div>
                                     </Tab>
                                     <Tab eventKey='process' title='Process' disabled={this.props.isProcessing}>
                                         <div className='row mt-3 mb-3'>
@@ -336,6 +347,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     <option value={140}>140 px</option>
                     <option value={200}>200 px</option>
                     <option value={400}>400 px</option>
+                    <option value={1000}>1000 px</option>
                 </select>
             </div>
         );
