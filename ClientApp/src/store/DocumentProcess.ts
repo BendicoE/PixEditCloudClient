@@ -91,6 +91,12 @@ export enum ExportFormatEnum {
     MicrosoftPowerPoint = 12
 };
 
+export interface SearchHit {
+    text: string;
+    category: string;
+    startIndex: number;
+    endIndex: number;
+}
 
 export interface DocumentProcessState {
     mode: string;
@@ -104,6 +110,7 @@ export interface DocumentProcessState {
     pixSize: number;
     previewAllPages: boolean;
     pagePreviews: PagePreview[] | null;
+    searchHits: SearchHit[] | null;
     removeBlackBorders: boolean,
     removePunchHoles: boolean,
     removeBlankPages: boolean,
@@ -189,6 +196,16 @@ interface ProcessFailedAction {
     error: string;
 }
 
+interface SearchTextCategoriesAction {
+    type: 'SEARCH_TEXT_CATEGORIES';
+}
+
+interface SearchReadyAction {
+    type: 'SEARCH_READY';
+    searchHits: SearchHit[];
+}
+
+
 type KnownAction =
     ModeSelectedAction |
     FileSelectedAction |
@@ -203,6 +220,8 @@ type KnownAction =
     DocumentSeparationTypeSelectedAction |
     DExportFormatSelectedAction |
     ProcessDocumentAction |
+    SearchTextCategoriesAction |
+    SearchReadyAction |
     ProcessFailedAction;
 
 // ACTION CREATORS
@@ -487,6 +506,41 @@ export const actionCreators = {
         }
     },
 
+    searchTextCategories: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'SEARCH_TEXT_CATEGORIES' });
+            const url = Globals.apiBaseUrl + '/SearchTextCategories';
+            const data = new FormData();
+            if (appState.docProcess.inputFile != null) {
+                data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
+                const reader = new window.FileReader();
+                reader.onloadend = () => {
+                    if (appState.globals) {
+                        axios.post(url, data, {
+                            headers: {
+                                'Authorization': 'Bearer ' + appState.globals.authToken,
+                                'Accept': 'application/json'
+                            },
+                            params: {
+                            }
+                        }).then((response) => {
+                            dispatch({ type: 'SEARCH_READY', searchHits: response.data });
+                        }, (error) => {
+                            if (error.response && error.response.status === 401) {
+                                dispatch({ type: 'PROCESS_FAILED', error: '' });
+                                dispatch({ type: 'SIGNED_OUT' });
+                            }
+                            else {
+                                dispatch({ type: 'PROCESS_FAILED', error: error });
+                            }
+                        });
+                    }
+                };
+                reader.readAsDataURL(appState.docProcess.inputFile);
+            }
+        }
+    },
 
 };
 
@@ -512,6 +566,7 @@ const unloadedState: DocumentProcessState = {
     enhanceText: false,
     documentSeparationType: 'None' as DocumentSeparationType,
     exportFormat: ExportFormat.MSWord,
+    searchHits: null,
     isProcessing: false,
     message: ''
 };
@@ -636,6 +691,22 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 pagePreviews: null,
                 isProcessing: true,
                 message: 'Processing document, please wait...'
+            };
+        case 'SEARCH_TEXT_CATEGORIES':
+            return {
+                ...state,
+                outputFilename: '',
+                downloadUrl: '',
+                pagePreviews: null,
+                isProcessing: true,
+                message: 'Processing document, please wait...'
+            };
+        case 'SEARCH_READY':
+            return {
+                ...state,
+                searchHits: action.searchHits,
+                isProcessing: false,
+                message: ''
             };
         case 'PROCESS_FAILED':
             return {

@@ -19,14 +19,15 @@ interface ProcessDocumentValues {
     doOcr: boolean;
     pixSize: number;
     pagePreviews: DocumentProcessStore.PagePreview[] | null;
-    removeBlackBorders: boolean,
-    removePunchHoles: boolean,
-    removeBlankPages: boolean,
-    autoOrientation: boolean,
-    deskew: boolean,
-    enhanceText: boolean,
-    documentSeparationType: DocumentProcessStore.DocumentSeparationType,
-    exportFormat: DocumentProcessStore.ExportFormat
+    removeBlackBorders: boolean;
+    removePunchHoles: boolean;
+    removeBlankPages: boolean;
+    autoOrientation: boolean;
+    deskew: boolean;
+    enhanceText: boolean;
+    documentSeparationType: DocumentProcessStore.DocumentSeparationType;
+    exportFormat: DocumentProcessStore.ExportFormat;
+    searchHits: DocumentProcessStore.SearchHit[] | null;
 }
 
 // COMPONENT
@@ -212,6 +213,10 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                             </div>
                                         </div>
                                     </Tab>
+                                    <Tab eventKey='searchTextCategories' title='Search Text Categories' disabled={this.props.isProcessing}>
+                                        <div className='row mt-3 mb-3'>
+                                        </div>
+                                    </Tab>
 
                                 </Tabs>
                             </div>
@@ -242,6 +247,13 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                         )
                         : <div/>
                 }
+                {
+                    this.props.mode === 'searchTextCategories' && this.props.searchHits ?
+                        this.props.searchHits.map((x, i) =>
+                                <span>{x.text} ({x.category})<br/></span>
+                        )
+                        : <div/>
+                }
             </React.Fragment>
         );
     }
@@ -257,7 +269,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                         type={type}
                         accept='application/pdf, application/zip, image/tiff, image/jpeg, image/png, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, \
                                 application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation \
-                                application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook'
+                                application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook, text/html'
                         onChange={event => this.handleInputFileChange(event)}
                         disabled={disabled}
                         />
@@ -388,7 +400,9 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         else if (this.props.mode === 'export') {
             this.props.inputFile && this.props.exportDocument();
         }
-
+        else if (this.props.mode === 'searchTextCategories') {
+            this.props.inputFile && this.props.searchTextCategories();
+        }
     };
 
 }
