@@ -91,11 +91,17 @@ export enum ExportFormatEnum {
     MicrosoftPowerPoint = 12
 };
 
-export interface SearchHit {
+export interface SearchScore {
     text: string;
     category: string;
     startIndex: number;
     endIndex: number;
+}
+
+export interface PageTextSearchResult {
+    pageIndex: number;
+    rawText: string;
+    scores: SearchScore[];
 }
 
 export interface DocumentProcessState {
@@ -110,7 +116,7 @@ export interface DocumentProcessState {
     pixSize: number;
     previewAllPages: boolean;
     pagePreviews: PagePreview[] | null;
-    searchHits: SearchHit[] | null;
+    searchResults: PageTextSearchResult[] | null;
     removeBlackBorders: boolean,
     removePunchHoles: boolean,
     removeBlankPages: boolean,
@@ -202,7 +208,7 @@ interface SearchTextCategoriesAction {
 
 interface SearchReadyAction {
     type: 'SEARCH_READY';
-    searchHits: SearchHit[];
+    searchResults: PageTextSearchResult[];
 }
 
 
@@ -525,7 +531,7 @@ export const actionCreators = {
                             params: {
                             }
                         }).then((response) => {
-                            dispatch({ type: 'SEARCH_READY', searchHits: response.data });
+                            dispatch({ type: 'SEARCH_READY', searchResults: response.data });
                         }, (error) => {
                             if (error.response && error.response.status === 401) {
                                 dispatch({ type: 'PROCESS_FAILED', error: '' });
@@ -566,7 +572,7 @@ const unloadedState: DocumentProcessState = {
     enhanceText: false,
     documentSeparationType: 'None' as DocumentSeparationType,
     exportFormat: ExportFormat.MSWord,
-    searchHits: null,
+    searchResults: null,
     isProcessing: false,
     message: ''
 };
@@ -596,6 +602,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 outputFilename: '',
                 downloadUrl: '',
                 pagePreviews: null,
+                searchResults: null,
                 message: ''
             };
         case 'OUTPUT_FORMAT_SELECTED':
@@ -704,7 +711,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
         case 'SEARCH_READY':
             return {
                 ...state,
-                searchHits: action.searchHits,
+                searchResults: action.searchResults,
                 isProcessing: false,
                 message: ''
             };

@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { Tabs, Tab } from 'react-bootstrap'
+import { Tabs, Tab, Card, Accordion, Button } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { RouteComponentProps } from 'react-router';
@@ -27,7 +27,7 @@ interface ProcessDocumentValues {
     enhanceText: boolean;
     documentSeparationType: DocumentProcessStore.DocumentSeparationType;
     exportFormat: DocumentProcessStore.ExportFormat;
-    searchHits: DocumentProcessStore.SearchHit[] | null;
+    searchResults: DocumentProcessStore.PageTextSearchResult[] | null;
 }
 
 // COMPONENT
@@ -248,10 +248,43 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                         : <div/>
                 }
                 {
-                    this.props.mode === 'searchTextCategories' && this.props.searchHits ?
-                        this.props.searchHits.map((x, i) =>
-                                <span>{x.text} ({x.category})<br/></span>
-                        )
+                    this.props.mode === 'searchTextCategories' && this.props.searchResults ?
+                        this.props.searchResults.map((x, i) =>
+                            <div>
+                                <h3>Page {x.pageIndex}</h3>
+                                <Accordion defaultActiveKey='0'>
+                                    <Card>
+                                        <Card.Header>
+                                            <Accordion.Toggle as={Button} variant="link" eventKey="0">
+                                                Scores
+                                            </Accordion.Toggle>
+                                        </Card.Header>
+                                        <Accordion.Collapse eventKey='0'>
+                                            <Card.Body>
+                                                {
+                                                    x.scores ?
+                                                        x.scores.map((y, j) =>
+                                                            <span>{y.text} ({y.category})<br /></span>
+                                                        ) :
+                                                        <span />
+                                                }
+                                            </Card.Body>
+                                        </Accordion.Collapse>
+                                    </Card>
+                                </Accordion>
+                                <Accordion>
+                                    <Card>
+                                        <Card.Header>
+                                            <Accordion.Toggle as={Button} variant='link' eventKey='0'>
+                                                Raw Text
+                                            </Accordion.Toggle>
+                                        </Card.Header>
+                                        <Accordion.Collapse eventKey='0'>
+                                            <Card.Body>{x.rawText}</Card.Body>
+                                        </Accordion.Collapse>
+                                    </Card>
+                                </Accordion>
+                            </div>)
                         : <div/>
                 }
             </React.Fragment>
