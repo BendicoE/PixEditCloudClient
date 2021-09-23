@@ -289,7 +289,7 @@ export const actionCreators = {
                             responseType: 'blob',
                             headers: {
                                 'Authorization': 'Bearer ' + appState.globals.authToken,
-                                'Accept': 'application/pdf, application/json'
+                                'Accept': 'application/pdf, application/json, text/plain'
                             },
                             params: {
                                 'Format': appState.docProcess ? appState.docProcess.outputFormat : '',
@@ -301,13 +301,13 @@ export const actionCreators = {
                             let respMimeType = response.headers["content-type"];
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
-                        }, (error) => {
+                        }).catch(async (error) => {
                                 if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response.data && error.response.data.text ? await error.response.data.text() : '' });
                                 }
                         });
                     }
@@ -346,13 +346,13 @@ export const actionCreators = {
                             }
                         }).then((response) => {
                             dispatch({ type: 'PREVIEW_READY', pagePreviews: response.data });
-                        }, (error) => {
+                        }).catch(async (error) => {
                                 if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response.data ? await error.response.data : '' });
                                 }
                         });
                     }
@@ -426,13 +426,13 @@ export const actionCreators = {
                             let respMimeType = response.headers["content-type"];
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
-                        }, (error) => {
+                        }).catch(async (error) => {
                                 if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response.data && error.response.data.text ? await error.response.data.text() : '' });
                                 }
                         });
                     }
@@ -496,13 +496,13 @@ export const actionCreators = {
                             let respMimeType = response.headers["content-type"];
                             const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
                             dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
-                        }, (error) => {
+                        }).catch(async (error) => {
                                 if (error.response && error.response.status === 401) {
                                     dispatch({ type: 'PROCESS_FAILED', error: '' });
                                     dispatch({ type: 'SIGNED_OUT' });
                                 }
                                 else {
-                                    dispatch({ type: 'PROCESS_FAILED', error: error });
+                                    dispatch({ type: 'PROCESS_FAILED', error: error.response.data && error.response.data.text ? await error.response.data.text() : '' });
                                 }
                         });
                     }
@@ -532,13 +532,13 @@ export const actionCreators = {
                             }
                         }).then((response) => {
                             dispatch({ type: 'SEARCH_READY', searchResults: response.data });
-                        }, (error) => {
+                        }).catch(async (error) => {
                             if (error.response && error.response.status === 401) {
                                 dispatch({ type: 'PROCESS_FAILED', error: '' });
                                 dispatch({ type: 'SIGNED_OUT' });
                             }
                             else {
-                                dispatch({ type: 'PROCESS_FAILED', error: error });
+                                dispatch({ type: 'PROCESS_FAILED', error: error.response.data ? await error.response.data : '' });
                             }
                         });
                     }
