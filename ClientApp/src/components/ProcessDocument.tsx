@@ -242,7 +242,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     this.props.mode === 'preview' && this.props.pagePreviews ?
                         this.props.pagePreviews.map((x, i) =>
                             <div className='page-thumb' style={{ width: this.props.pixSize + 16, height: this.props.pixSize + 16 }}>
-                                <img src={"data:image/png;base64," + x.imageData} />
+                                <img src={"data:image/jpeg;base64," + x.imageData} />
                             </div>
                         )
                         : <div/>
@@ -300,7 +300,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                         id='inputFile'
                         name={input.name}
                         type={type}
-                        accept='application/pdf, application/zip, image/tiff, image/jpeg, image/png, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, \
+                        accept='application/pdf, application/zip, image/tiff, image/jpeg, image/png, image/heic, image/heif, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, \
                                 application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation \
                                 application/vnd.oasis.opendocument.text, application/vnd.ms-project, message/rfc822, application/vnd.ms-outlook, text/html'
                         onChange={event => this.handleInputFileChange(event)}
@@ -392,7 +392,8 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     <option value={140}>140 px</option>
                     <option value={200}>200 px</option>
                     <option value={400}>400 px</option>
-                    <option value={1000}>1000 px</option>
+                    <option value={800}>800 px</option>
+                    <option value={1200}>1200 px</option>
                 </select>
             </div>
         );

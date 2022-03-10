@@ -243,6 +243,8 @@ export const actionCreators = {
     selectFile: (filename: string, mimeType: string, file: File): AppThunkAction<KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
+            if (filename.toLowerCase().endsWith('.heic') && mimeType == '')
+                mimeType = 'image/heic';
             dispatch({ type: 'FILE_SELECTED', filename: filename, mimeType: mimeType, file: file });
         }
     },
@@ -331,7 +333,8 @@ export const actionCreators = {
             const url = Globals.apiBaseUrl + '/Preview';
             const data = new FormData();
             if (appState.docProcess.inputFile != null) {
-                data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
+                var blob = new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType });
+                data.append('file', blob, appState.docProcess.inputFilename);
                 const reader = new window.FileReader();
                 reader.onloadend = () => {
                     if (appState.globals) {
