@@ -6,9 +6,6 @@ import packageJson from '../../package.json';
 export const appVersion = packageJson.version;
 
 export const apiBaseUrl: string = 'https://api.pixeditcloud.com';
-//export const apiBaseUrl: string = 'https://pdfconvertmicroservice20200922140548-staging.azurewebsites.net/convertpdf';
-//export const apiBaseUrl: string = 'http://localhost:5000/convertpdf';
-//export const apiBaseUrl: string = ' https://36db762f8a46.ngrok.io/convertpdf';
 
 
 export interface GlobalState {
