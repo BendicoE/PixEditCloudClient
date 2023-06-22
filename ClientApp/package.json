@@ -1,6 +1,6 @@
 {
   "name": "pixeditcloudclient",
-  "version": "1.0.32",
+  "version": "1.0.35",
   "private": true,
   "dependencies": {
     "bootstrap": "^4.3.1",

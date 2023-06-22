@@ -24,7 +24,7 @@ class NavMenu extends React.PureComponent<GlobalProps, { isOpen: boolean }> {
              <header>
                 <Navbar className="navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" light>
                     <Container>
-                        <NavbarBrand tag={Link} to="/"><img src="/pixeditcloudlogo.svg" style={{ height: "54px" }} /></NavbarBrand>
+                        <NavbarBrand tag={Link} to="/"><img src="/pixeditcloudlogo.svg" style={{ height: "42px" }} /></NavbarBrand>
                         <NavbarToggler onClick={this.toggle} className="mr-2"/>
                         <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={this.state.isOpen} navbar>
                             <ul className="navbar-nav flex-grow">
