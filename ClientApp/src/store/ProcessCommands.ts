@@ -449,7 +449,7 @@ const cmdOcrExport = (format: number) => `
         {
             "$type": "OCRExport",
             "CmdName": "Export Document",
-            "ExportFileFormat": 5,
+            "ExportFileFormat": ${format},
             "CharacterEncoding": 0,
             "Layout": 2,
             "CompressionQuality": 5,
@@ -459,7 +459,7 @@ const cmdOcrExport = (format: number) => `
             "BookmarksEnabled": false,
             "SpreadsheetLayout": 0,
             "PresentationLayout": 0,
-            "MetadataTitle": "ExportToWord",
+            "MetadataTitle": "PixEdit Cloud OCR Export",
             "MetadataAuthor": "",
             "MetadataSubject": "",
             "MetadataKeywords": "",

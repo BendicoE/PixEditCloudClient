@@ -80,15 +80,11 @@ export enum ExportFormatEnum {
     HTML = 1,
     RTF = 2,
     PDF = 3,
-    CSV = 4,
-    WordML = 5,
-    ExcelML = 6,
-    OpenDoc = 7,
-    OpenXML = 8,
-    MicrosoftWord = 9,
-    MicrosoftExcel = 10,
-    EPUB = 11,
-    MicrosoftPowerPoint = 12
+    OpenDoc = 4,
+    MicrosoftWord = 5,
+    MicrosoftExcel = 6,
+    EPUB = 7,
+    MicrosoftPowerPoint = 8
 };
 
 export interface SearchScore {
