@@ -242,7 +242,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     this.props.mode === 'preview' && this.props.pagePreviews ?
                         this.props.pagePreviews.map((x, i) =>
                             <div className='page-thumb' style={{ width: this.props.pixSize + 16, height: this.props.pixSize + 16 }}>
-                                <img src={"data:image/jpeg;base64," + x.imageData} />
+                                <img src={"data:image/jpeg;base64," + x.imageData} style={{ maxWidth: this.props.pixSize, maxHeight: this.props.pixSize }} />
                             </div>
                         )
                         : <div/>

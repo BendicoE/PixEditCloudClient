@@ -340,7 +340,7 @@ export const actionCreators = {
                                 'Accept': 'application/json'
                             },
                             params: {
-                                'PixSize': appState.docProcess ? appState.docProcess.pixSize : 100,
+                                'PixSize': appState.docProcess ? appState.docProcess.pixSize * 2 : 200,
                                 'MaxPages': appState.docProcess ? (appState.docProcess.previewAllPages ? -1 : 1) : 1
                             }
                         }).then((response) => {
