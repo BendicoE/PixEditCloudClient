@@ -27,6 +27,7 @@ interface ProcessDocumentValues {
     enhanceText: boolean;
     documentSeparationType: DocumentProcessStore.DocumentSeparationType;
     exportFormat: DocumentProcessStore.ExportFormat;
+    exportLayout: DocumentProcessStore.EportLayout;
     searchResults: DocumentProcessStore.PageTextSearchResult[] | null;
 }
 
@@ -208,6 +209,17 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                     options={DocumentProcessStore.ExportFormat}
                                                     component={this.renderSelectOption}
                                                     onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleExportFormatChange(event)}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
+                                            <div className='col-sm-3'>
+                                                <Field
+                                                    name='exportLayout'
+                                                    selectedValue={this.props.exportLayout}
+                                                    label='Export Layout'
+                                                    options={DocumentProcessStore.ExportLayout}
+                                                    component={this.renderSelectOption}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLSelectElement>) => this.handleExportLayoutChange(event)}
                                                     disabled={this.props.isProcessing}
                                                 />
                                             </div>
@@ -414,6 +426,12 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
     handleExportFormatChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if (event.target && event.target.value) {
             this.props.selectExportFormat(event.target.value as DocumentProcessStore.ExportFormat);
+        }
+    };
+
+    handleExportLayoutChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        if (event.target && event.target.value) {
+            this.props.selectExportLayout(event.target.value as DocumentProcessStore.ExportLayout);
         }
     };
 

@@ -445,17 +445,17 @@ const cmdConvertProperties = () => `
         },
 `;
 
-const cmdOcrExport = (format: number) => `
+const cmdOcrExport = (format: number, layout: number) => `
         {
             "$type": "OCRExport",
             "CmdName": "Export Document",
             "ExportFileFormat": ${format},
             "CharacterEncoding": 0,
-            "Layout": 2,
+            "Layout": ${layout},
             "CompressionQuality": 5,
             "OutputImageResolution": 300.0,
-            "RecognizeColorMode": 0,
-            "PageSizes": [1, 2, 6, 10, 12, 16],
+            "RecognizeColorMode": 3,
+            "PageSizes": [1, 2, 6, 11, 12, 16],
             "BookmarksEnabled": false,
             "SpreadsheetLayout": 0,
             "PresentationLayout": 0,

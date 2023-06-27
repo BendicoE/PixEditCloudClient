@@ -87,6 +87,20 @@ export enum ExportFormatEnum {
     MicrosoftPowerPoint = 8
 };
 
+export enum ExportLayout {
+    ExportNoLayout = 'No Layout',
+    ExportFlowing = 'Flowing',
+    ExportEditable = 'Editable',
+    ExportExact = 'Exact'
+}
+
+export enum ExportLayoutEnum {
+    NoLayout = 0,
+    Flowing = 1,
+    Editable = 2,
+    Exact = 3
+};
+
 export interface SearchScore {
     text: string;
     category: string;
@@ -121,6 +135,7 @@ export interface DocumentProcessState {
     enhanceText: boolean,
     documentSeparationType: DocumentSeparationType,
     exportFormat: ExportFormat,
+    exportLayout: ExportLayout,
     isProcessing: boolean,
     message: string
 }
@@ -184,9 +199,14 @@ interface DocumentSeparationTypeSelectedAction {
     separationType: DocumentSeparationType;
 }
 
-interface DExportFormatSelectedAction {
+interface ExportFormatSelectedAction {
     type: 'EXPORT_FORMAT_SELECTED';
     format: ExportFormat;
+}
+
+interface ExportLayoutSelectedAction {
+    type: 'EXPORT_LAYOUT_SELECTED';
+    layout: ExportLayout;
 }
 
 interface ProcessDocumentAction {
@@ -220,7 +240,8 @@ type KnownAction =
     PreviewReadyAction |
     OperationSelectedAction |
     DocumentSeparationTypeSelectedAction |
-    DExportFormatSelectedAction |
+    ExportFormatSelectedAction |
+    ExportLayoutSelectedAction |
     ProcessDocumentAction |
     SearchTextCategoriesAction |
     SearchReadyAction |
@@ -448,6 +469,13 @@ export const actionCreators = {
         }
     },
 
+    selectExportLayout: (layout: ExportLayout): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'EXPORT_LAYOUT_SELECTED', layout: layout });
+        }
+    },
+
     exportDocument: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
@@ -476,7 +504,26 @@ export const actionCreators = {
                         ocrExportFormat = ExportFormatEnum.MicrosoftPowerPoint;
                         break;
                 }
-                jobSpec += cmdOcrExport(ocrExportFormat);
+
+                var ocrExportLayout;
+                switch (appState.docProcess.exportLayout as string) {
+                    default:
+                    case 'ExportNoLayout':
+                        ocrExportLayout = ExportLayoutEnum.NoLayout;
+                        break;
+                    case 'ExportFlowing':
+                        ocrExportLayout = ExportLayoutEnum.Flowing;
+                        break;
+                    case 'ExportEditable':
+                        ocrExportLayout = ExportLayoutEnum.Editable;
+                        break;
+                    case 'ExportExact':
+                        ocrExportLayout = ExportLayoutEnum.Exact;
+                        break;
+                }
+
+
+                jobSpec += cmdOcrExport(ocrExportFormat, ocrExportLayout);
                 jobSpec += cmdJobTicketFooter();
 
                 data.append('file', new Blob([jobSpec], { type: 'application/json' }), 'jobspec.json');
@@ -571,6 +618,7 @@ const unloadedState: DocumentProcessState = {
     enhanceText: false,
     documentSeparationType: 'None' as DocumentSeparationType,
     exportFormat: ExportFormat.MSWord,
+    exportLayout: ExportLayout.ExportFlowing,
     searchResults: null,
     isProcessing: false,
     message: ''
@@ -685,6 +733,14 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
             return {
                 ...state,
                 exportFormat: action.format,
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
+        case 'EXPORT_LAYOUT_SELECTED':
+            return {
+                ...state,
+                exportLayout: action.layout,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''
