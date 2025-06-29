@@ -385,7 +385,7 @@ const cmdSaveProperties = () => `
         {
             "$type": "SaveProperties",
             "CmdName": "Save to Output Directory",
-            "FileFormat": 1,
+            "FileFormat": 0,
             "ImageQuality": 85.0,
             "AlternativeSavePath": "",
             "DocnameFormat": 0,
@@ -491,6 +491,70 @@ const cmdOcrExport = (format: number, layout: number) => `
        },
 `;
 
+const cmdRedactDocument = (
+    redactionType: number,
+    searchType: number,
+    phrases: string[],
+    regularExpressions: string[],
+    piiEntityCategories: number[],
+    entityCategories: number[],
+    regexEntities: number[],
+    aiQueries: string[]) => `
+    {
+      "$type": "RedactDocument",
+      "CmdName": "Redact Document",
+      "SearchType": ${searchType},
+      "RedactionType": ${redactionType},
+      "RegularExpressions": [
+          ${regularExpressions}
+      ],
+      "Phrases": [
+          ${phrases}
+      ],
+      "PiiEntityCategories": [
+          ${piiEntityCategories}
+      ],
+      "EntityCategories": [
+          ${entityCategories}
+      ],
+      "RegexEntities": [
+          ${regexEntities}
+      ],
+      "AiQueries": [
+          ${aiQueries}
+      ]
+    },
+`;
+
+const cmdtypRegularExpression = (name: string, expression: string, flags: string) =>
+`
+    {
+        "$type": "SearchExpression",
+        "Name": "${name}",
+        "Expression": "${expression}",
+        "Flags": "${flags}"
+    },
+`;
+
+const cmdtypPhrase = (phrase: string, ignoreCase: boolean) =>
+`
+    {
+        "$type": "SearchPhrase",
+        "Phrase": "${phrase}",
+        "IgnoreCase": ${ignoreCase}
+    },
+`;
+
+const cmdtypAiQuery = (name: string, query: string) =>
+`
+    {
+        "$type": "AiQuery",
+        "Name": "${name}",
+        "Query": "${query}"
+    },
+`;
+
+
 const cmdJobTicketFooter = () => `
     ]
 }
@@ -535,5 +599,9 @@ export {
     cmdSaveProperties,
     cmdConvertProperties,
     cmdOcrExport,
+    cmdRedactDocument,
+    cmdtypPhrase,
+    cmdtypRegularExpression,
+    cmdtypAiQuery,
     cmdJobTicketFooter
 }

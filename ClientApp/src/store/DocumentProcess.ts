@@ -40,6 +40,10 @@ import {
     cmdSaveProperties,
     cmdConvertProperties,
     cmdOcrExport,
+    cmdRedactDocument,
+    cmdtypPhrase,
+    cmdtypRegularExpression,
+    cmdtypAiQuery,
     cmdJobTicketFooter
 } from './ProcessCommands';
 
@@ -101,19 +105,6 @@ export enum ExportLayoutEnum {
     Exact = 3
 };
 
-export interface SearchScore {
-    text: string;
-    category: string;
-    startIndex: number;
-    endIndex: number;
-}
-
-export interface PageTextSearchResult {
-    pageIndex: number;
-    rawText: string;
-    scores: SearchScore[];
-}
-
 export interface DocumentProcessState {
     mode: string;
     inputFilename: string;
@@ -126,7 +117,6 @@ export interface DocumentProcessState {
     pixSize: number;
     previewAllPages: boolean;
     pagePreviews: PagePreview[] | null;
-    searchResults: PageTextSearchResult[] | null;
     removeBlackBorders: boolean,
     removePunchHoles: boolean,
     removeBlankPages: boolean,
@@ -136,6 +126,9 @@ export interface DocumentProcessState {
     documentSeparationType: DocumentSeparationType,
     exportFormat: ExportFormat,
     exportLayout: ExportLayout,
+    redactType: string,
+    textSearchType: string,
+    searchText: string,
     isProcessing: boolean,
     message: string
 }
@@ -209,6 +202,21 @@ interface ExportLayoutSelectedAction {
     layout: ExportLayout;
 }
 
+interface RedactTypeSelectedAction {
+    type: 'REDACT_TYPE_SELECTED';
+    redactType: string;
+}
+
+interface TextSearchTypeSelectedAction {
+    type: 'TEXT_SEARCH_TYPE_SELECTED';
+    textSearchType: string;
+}
+
+interface SearchTextChangedAction {
+    type: 'SEARCH_TEXT_CHANGED';
+    searchText: string;
+}
+
 interface ProcessDocumentAction {
     type: 'PROCESS_DOCUMENT';
 }
@@ -217,16 +225,6 @@ interface ProcessFailedAction {
     type: 'PROCESS_FAILED';
     error: string;
 }
-
-interface SearchTextCategoriesAction {
-    type: 'SEARCH_TEXT_CATEGORIES';
-}
-
-interface SearchReadyAction {
-    type: 'SEARCH_READY';
-    searchResults: PageTextSearchResult[];
-}
-
 
 type KnownAction =
     ModeSelectedAction |
@@ -242,9 +240,10 @@ type KnownAction =
     DocumentSeparationTypeSelectedAction |
     ExportFormatSelectedAction |
     ExportLayoutSelectedAction |
+    RedactTypeSelectedAction |
+    TextSearchTypeSelectedAction |
     ProcessDocumentAction |
-    SearchTextCategoriesAction |
-    SearchReadyAction |
+    SearchTextChangedAction |
     ProcessFailedAction;
 
 // ACTION CREATORS
@@ -386,6 +385,27 @@ export const actionCreators = {
         const appState = getState();
         if (appState && appState.docProcess) {
             dispatch({ type: 'DOCUMENT_SEPARATION_TYPE_SELECTED', separationType: separationType });
+        }
+    },
+
+    selectRedactType: (redactType: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'REDACT_TYPE_SELECTED', redactType: redactType });
+        }
+    },
+
+    selectTextSearchType: (textSearchType: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'TEXT_SEARCH_TYPE_SELECTED', textSearchType: textSearchType });
+        }
+    },
+
+    setSearchText: (searchText: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.docProcess) {
+            dispatch({ type: 'SEARCH_TEXT_CHANGED', searchText: searchText });
         }
     },
 
@@ -558,26 +578,106 @@ export const actionCreators = {
         }
     },
 
-    searchTextCategories: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
+    redactDocument: (): AppThunkAction<KnownAction | Globals.KnownAction> => (dispatch, getState) => {
         const appState = getState();
         if (appState && appState.docProcess) {
-            dispatch({ type: 'SEARCH_TEXT_CATEGORIES' });
-            const url = Globals.apiBaseUrl + '/SearchTextCategories';
+            dispatch({ type: 'PROCESS_DOCUMENT' });
+            const url = Globals.apiBaseUrl + '/Process';
             const data = new FormData();
             if (appState.docProcess.inputFile != null) {
+
+                let jobSpec = cmdJobTicketHeader();
+                jobSpec += cmdConvertProperties();
+
+                let redactType = 0;
+                switch (appState.docProcess.redactType) {
+                    default:
+                    case 'markup':
+                        redactType = 1;
+                        break;
+                    case 'redact':
+                        redactType = 2;
+                        break;
+                    case 'markupandredact':
+                        redactType = 3;
+                        break;
+                }
+
+                let textSearchType = 0;
+                switch (appState.docProcess.textSearchType) {
+                    default:
+                    case 'phrase':
+                        textSearchType = 1;
+                        break;
+                    case 'regex':
+                        textSearchType = 1;
+                        break;
+                    case 'piicat':
+                        textSearchType = 2;
+                        break;
+                    case 'dataextract':
+                        textSearchType = 3;
+                        break;
+                    case 'highlightedareas':
+                        textSearchType = 4;
+                        break;
+                }
+
+                var phrases = null;
+                var expressions = null;
+                var piiCategories = null;
+                var piiEntities = null;
+                var regexEntities = null;
+                var aiQueries = null;
+
+                if (appState.docProcess.textSearchType == 'phrase' && appState.docProcess.searchText.length > 0) {
+                    phrases = [cmdtypPhrase(appState.docProcess.searchText, true)];
+                }
+                else if (appState.docProcess.textSearchType == 'regex' && appState.docProcess.searchText.length > 0) {
+                    expressions = [cmdtypRegularExpression('regex', appState.docProcess.searchText, 'i')];
+                }
+                else if (appState.docProcess.textSearchType == 'piicat') {
+                    piiCategories = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                    regexEntities = [0, 1, 2, 3, 4, 5]
+                }
+                else if (appState.docProcess.textSearchType == 'dataextract' && appState.docProcess.searchText.length > 0) {
+                    aiQueries = [cmdtypAiQuery('query', appState.docProcess.searchText)];
+                }
+
+                let redactSpec = cmdRedactDocument(
+                    redactType,
+                    textSearchType,
+                    phrases != null ? phrases : [],
+                    expressions != null ? expressions : [],
+                    piiCategories != null ? piiCategories : [],
+                    piiEntities != null ? piiEntities : [],
+                    regexEntities != null ? regexEntities : [],
+                    aiQueries != null ? aiQueries : []);
+
+                jobSpec += redactSpec;
+
+                jobSpec += cmdSaveProperties();
+                jobSpec += cmdJobTicketFooter();
+
+                data.append('file', new Blob([jobSpec], { type: 'application/json' }), 'jobspec.json');
                 data.append('file', new Blob([appState.docProcess.inputFile], { type: appState.docProcess.inputMimeType }), appState.docProcess.inputFilename);
                 const reader = new window.FileReader();
                 reader.onloadend = () => {
                     if (appState.globals) {
                         axios.post(url, data, {
+                            responseType: 'blob',
                             headers: {
                                 'Authorization': 'Bearer ' + appState.globals.authToken,
-                                'Accept': 'application/json'
+                                'Accept': 'application/pdf'
                             },
                             params: {
                             }
                         }).then((response) => {
-                            dispatch({ type: 'SEARCH_READY', searchResults: response.data });
+                            let respFilename = response.headers["content-disposition"].split("filename=")[1].split(";")[0];
+                            respFilename = respFilename.replace(/^"+|"+$/g, '');
+                            let respMimeType = response.headers["content-type"];
+                            const url = (window.URL || window.webkitURL).createObjectURL(new Blob([response.data], { type: respMimeType }));
+                            dispatch({ type: 'DOCUMENT_READY', filename: respFilename, downloadUrl: url });
                         }).catch(async (error) => {
                             if (error.response && error.response.status === 401) {
                                 dispatch({ type: 'PROCESS_FAILED', error: '' });
@@ -619,7 +719,9 @@ const unloadedState: DocumentProcessState = {
     documentSeparationType: 'None' as DocumentSeparationType,
     exportFormat: ExportFormat.MSWord,
     exportLayout: ExportLayout.ExportFlowing,
-    searchResults: null,
+    redactType: 'markup',
+    textSearchType: 'phrase',
+    searchText: '',
     isProcessing: false,
     message: ''
 };
@@ -649,7 +751,6 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 outputFilename: '',
                 downloadUrl: '',
                 pagePreviews: null,
-                searchResults: null,
                 message: ''
             };
         case 'OUTPUT_FORMAT_SELECTED':
@@ -745,6 +846,30 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 downloadUrl: '',
                 message: ''
             };
+        case 'REDACT_TYPE_SELECTED':
+            return {
+                ...state,
+                redactType: action.redactType,
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
+        case 'TEXT_SEARCH_TYPE_SELECTED':
+            return {
+                ...state,
+                textSearchType: action.textSearchType,
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
+        case 'SEARCH_TEXT_CHANGED':
+            return {
+                ...state,
+                searchText: action.searchText,
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
         case 'PROCESS_DOCUMENT':
             return {
                 ...state,
@@ -753,22 +878,6 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 pagePreviews: null,
                 isProcessing: true,
                 message: 'Processing document, please wait...'
-            };
-        case 'SEARCH_TEXT_CATEGORIES':
-            return {
-                ...state,
-                outputFilename: '',
-                downloadUrl: '',
-                pagePreviews: null,
-                isProcessing: true,
-                message: 'Processing document, please wait...'
-            };
-        case 'SEARCH_READY':
-            return {
-                ...state,
-                searchResults: action.searchResults,
-                isProcessing: false,
-                message: ''
             };
         case 'PROCESS_FAILED':
             return {

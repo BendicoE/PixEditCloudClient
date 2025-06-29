@@ -27,8 +27,10 @@ interface ProcessDocumentValues {
     enhanceText: boolean;
     documentSeparationType: DocumentProcessStore.DocumentSeparationType;
     exportFormat: DocumentProcessStore.ExportFormat;
-    exportLayout: DocumentProcessStore.EportLayout;
-    searchResults: DocumentProcessStore.PageTextSearchResult[] | null;
+    exportLayout: DocumentProcessStore.ExportLayout;
+    redactType: string;
+    textSearchType: string;
+    searchText: string;
 }
 
 // COMPONENT
@@ -225,8 +227,35 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                             </div>
                                         </div>
                                     </Tab>
-                                    <Tab eventKey='searchTextCategories' title='Search Text Categories' disabled={this.props.isProcessing}>
+                                    <Tab eventKey='redact' title='Redact Document' disabled={this.props.isProcessing}>
                                         <div className='row mt-3 mb-3'>
+                                            <div className='col-sm-6'>
+                                                <Field
+                                                    name='redactType'
+                                                    label='Redact Type'
+                                                    component={this.renderRedactType}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLInputElement>) => this.handleRedactTypeChange(event)}
+                                                    disabled={this.props.isProcessing}
+                                                    currentSelection={this.props.redactType}
+                                                />
+                                                <Field
+                                                    name='textSearchType'
+                                                    label='Text Search Type'
+                                                    component={this.renderTextSearchType}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLInputElement>) => this.handleTextSearchTypeChange(event)}
+                                                    disabled={this.props.isProcessing}
+                                                    currentSelection={this.props.textSearchType}
+                                                />
+                                                <Field
+                                                    name='searchText'
+                                                    label='Search Text'
+                                                    type='text'
+                                                    value={this.props.searchText}
+                                                    component={this.renderSearchText}
+                                                    onChangeHandler={(event: React.ChangeEvent<HTMLInputElement>) => this.handleSearchTextChange(event)}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                            </div>
                                         </div>
                                     </Tab>
 
@@ -244,7 +273,7 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                     <p>{this.props.message}</p>
                 </div>
                 {
-                    (this.props.mode === 'convert' || this.props.mode === 'process' || this.props.mode === 'export') && this.props.downloadUrl ?
+                    (this.props.mode === 'convert' || this.props.mode === 'process' || this.props.mode === 'export' || this.props.mode === 'redact') && this.props.downloadUrl ?
                         <div>
                             <h2><a href={this.props.downloadUrl || ''} target='_blank' rel='noopener noreferrer' download={this.props.outputFilename}>{this.props.outputFilename || ''}</a></h2>
                         </div>
@@ -257,46 +286,6 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                 <img src={"data:image/jpeg;base64," + x.imageData} style={{ maxWidth: this.props.pixSize, maxHeight: this.props.pixSize }} />
                             </div>
                         )
-                        : <div/>
-                }
-                {
-                    this.props.mode === 'searchTextCategories' && this.props.searchResults ?
-                        this.props.searchResults.map((x, i) =>
-                            <div>
-                                <h3>Page {x.pageIndex}</h3>
-                                <Accordion defaultActiveKey='0'>
-                                    <Card>
-                                        <Card.Header>
-                                            <Accordion.Toggle as={Button} variant="link" eventKey="0">
-                                                Scores
-                                            </Accordion.Toggle>
-                                        </Card.Header>
-                                        <Accordion.Collapse eventKey='0'>
-                                            <Card.Body>
-                                                {
-                                                    x.scores ?
-                                                        x.scores.map((y, j) =>
-                                                            <span>{y.text} ({y.category})<br /></span>
-                                                        ) :
-                                                        <span />
-                                                }
-                                            </Card.Body>
-                                        </Accordion.Collapse>
-                                    </Card>
-                                </Accordion>
-                                <Accordion>
-                                    <Card>
-                                        <Card.Header>
-                                            <Accordion.Toggle as={Button} variant='link' eventKey='0'>
-                                                Raw Text
-                                            </Accordion.Toggle>
-                                        </Card.Header>
-                                        <Accordion.Collapse eventKey='0'>
-                                            <Card.Body>{x.rawText}</Card.Body>
-                                        </Accordion.Collapse>
-                                    </Card>
-                                </Accordion>
-                            </div>)
                         : <div/>
                 }
             </React.Fragment>
@@ -334,7 +323,15 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
-    renderSelectOption = ({ input, options, selectedValue, label, disabled, onChangeHandler }: { input: HTMLSelectElement, options: Enum, selectedValue: string, label: string, disabled: boolean, onChangeHandler: (event: React.ChangeEvent<HTMLSelectElement>) => any }) => {
+    renderSelectOption =
+        ({ input, options, selectedValue, label, disabled, onChangeHandler }: {
+            input: HTMLSelectElement,
+            options: Enum,
+            selectedValue: string,
+            label: string,
+            disabled: boolean,
+            onChangeHandler: (event: React.ChangeEvent<HTMLSelectElement>) => any
+        }) => {
         return (
             <div>
                 <label htmlFor={input.name}>{label}</label>
@@ -357,6 +354,72 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
             </div>
         );
     };
+
+    renderRedactType =
+        ({ input, label, currentSelection, disabled, onChangeHandler }: {
+            input: HTMLDivElement,
+            label: string,
+            currentSelection: string,
+            disabled: boolean
+            onChangeHandler: (event: React.ChangeEvent<HTMLInputElement>) => any
+        }) => {
+            return (
+                <div>
+                    <br />
+                    {label}<br />
+                    <div>
+                        <input type="radio" value="markup" name="redactOption" checked={currentSelection === "markup"} disabled={disabled} onChange={onChangeHandler} /> Markup<br />
+                        <input type="radio" value="redact" name="redactOption" checked={currentSelection === "redact"} disabled={disabled} onChange={onChangeHandler} /> Redact<br />
+                        <input type="radio" value="markupandredact" name="redactOption" checked={currentSelection === "markupandredact"} disabled={disabled} onChange={onChangeHandler} /> Markup and Redact<br />
+                    </div>
+                </div>
+            );
+        };
+
+    renderTextSearchType =
+        ({ input, label, currentSelection, disabled, onChangeHandler }: {
+            input: HTMLDivElement,
+            label: string,
+            currentSelection: string,
+            disabled: boolean
+            onChangeHandler: (event: React.ChangeEvent<HTMLInputElement>) => any
+        }) => {
+        return (
+            <div>
+                <br />
+                {label}<br />
+                <div>
+                    <input type="radio" value="phrase" name="textSearchOption" checked={currentSelection === "phrase"} disabled={disabled} onChange={onChangeHandler} /> Phrase<br/>
+                    <input type="radio" value="regex" name="textSearchOption" checked={currentSelection === "regex"} disabled={disabled} onChange={onChangeHandler} /> Regular Expression<br/>
+                    <input type="radio" value="piicat" name="textSearchOption" checked={currentSelection === "piicat"} disabled={disabled} onChange={onChangeHandler} /> PII Categories<br/>
+                    <input type="radio" value="dataextract" name="textSearchOption" checked={currentSelection === "dataextract"} disabled={disabled} onChange={onChangeHandler} /> AI Data Extraction<br/>
+                    <input type="radio" value="highlightedareas" name="textSearchOption" checked={currentSelection === "highlightedareas"} disabled={disabled} onChange={onChangeHandler} /> Highlighted Areas<br />
+                </div>
+            </div>
+        );
+    };
+
+    renderSearchText = ({ input, label, type, value, meta: { touched, error, warning }, onChangeHandler }: {
+        input: any,
+        label: string,
+        type: string,
+        value: string,
+        meta: { touched: boolean, error: string, warning: string },
+        onChangeHandler: (event: React.ChangeEvent<HTMLInputElement>) => any
+    }) => (
+        <div>
+            <div>
+                <br />
+                <input className='w-100' id={input.name} name={input.name} placeholder={label} type={type} value={value} onChange={onChangeHandler} />
+            </div>
+            <div>
+                {touched &&
+                    ((error && <span className='text-danger'>{error}</span>) ||
+                        (warning && <span className='text-warning'>{warning}</span>))}
+            </div>
+        </div>
+    );
+
 
     handleOutputFormatChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if (event.target && event.target.value) {
@@ -435,6 +498,25 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         }
     };
 
+    handleTextSearchTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target && event.target.value) {
+            this.props.selectTextSearchType(event.target.value);
+        }
+    }
+
+    handleRedactTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target && event.target.value) {
+            this.props.selectRedactType(event.target.value);
+        }
+    }
+
+    handleSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.preventDefault();
+        if (event.target && event.target.value) {
+            this.props.setSearchText(event.target.value);
+        }
+    };
+
     onModeSelect = (mode: any) => {
         this.props.selectMode(mode);
     };
@@ -452,8 +534,8 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
         else if (this.props.mode === 'export') {
             this.props.inputFile && this.props.exportDocument();
         }
-        else if (this.props.mode === 'searchTextCategories') {
-            this.props.inputFile && this.props.searchTextCategories();
+        else if (this.props.mode === 'redact') {
+            this.props.inputFile && this.props.redactDocument();
         }
     };
 
