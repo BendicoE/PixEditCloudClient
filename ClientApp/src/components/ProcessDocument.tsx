@@ -255,6 +255,127 @@ class ProcessDocument extends React.PureComponent<ProcessDocumentProps & Injecte
                                                     onChangeHandler={(event: React.ChangeEvent<HTMLInputElement>) => this.handleSearchTextChange(event)}
                                                     disabled={this.props.isProcessing}
                                                 />
+                                                <br />
+                                                <label>PII Categories</label>
+                                                <Field
+                                                    name='piiAddress'
+                                                    label='Address'
+                                                    isChecked={this.props.piiAddress}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiPerson'
+                                                    label='Person'
+                                                    isChecked={this.props.piiPerson}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiEmail'
+                                                    label='Email'
+                                                    isChecked={this.props.piiEmail}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiNOIdentityNumber'
+                                                    label='NO Identity Number'
+                                                    isChecked={this.props.piiNOIdentityNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiDate'
+                                                    label='Date'
+                                                    isChecked={this.props.piiDate}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiOrganization'
+                                                    label='Organization'
+                                                    isChecked={this.props.piiOrganization}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiPhoneNumber'
+                                                    label='PhoneNumber'
+                                                    isChecked={this.props.piiPhoneNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiSwiftCode'
+                                                    label='Swift Code'
+                                                    isChecked={this.props.piiSwiftCode}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiCreditCardNumber'
+                                                    label='Credit Card Number'
+                                                    isChecked={this.props.piiCreditCardNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiIPAddress'
+                                                    label='IP Address'
+                                                    isChecked={this.props.piiIPAddress}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='piiURL'
+                                                    label='URL'
+                                                    isChecked={this.props.piiURL}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='regexNorwegianBirthIdNumber'
+                                                    label='Norwegian Birth Id Number'
+                                                    isChecked={this.props.regexNorwegianBirthIdNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='regexNorwegianPhoneNumber'
+                                                    label='Norwegian Phone Number'
+                                                    isChecked={this.props.regexNorwegianPhoneNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='regexNorwegianBankAccountNumber'
+                                                    label='Norwegian Bank Account Number'
+                                                    isChecked={this.props.regexNorwegianBankAccountNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='regexOrgNum'
+                                                    label='Organization Number'
+                                                    isChecked={this.props.regexOrgNum}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='regexNorwegianPersonCarLicensePlate'
+                                                    label='Norwegian Person Car License Plate'
+                                                    isChecked={this.props.regexNorwegianPersonCarLicensePlate}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
+                                                <Field
+                                                    name='regexSwedishBirthIdNumber'
+                                                    label='Swedish Birth Id Number'
+                                                    isChecked={this.props.regexSwedishBirthIdNumber}
+                                                    component={this.renderCheckOption}
+                                                    disabled={this.props.isProcessing}
+                                                />
                                             </div>
                                         </div>
                                     </Tab>

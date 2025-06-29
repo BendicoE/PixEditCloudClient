@@ -129,6 +129,23 @@ export interface DocumentProcessState {
     redactType: string,
     textSearchType: string,
     searchText: string,
+    piiAddress: boolean,
+    piiPerson: boolean,
+    piiEmail: boolean,
+    piiNOIdentityNumber: boolean,
+    piiDate: boolean,
+    piiOrganization: boolean,
+    piiPhoneNumber: boolean,
+    piiSwiftCode: boolean,
+    piiCreditCardNumber: boolean,
+    piiIPAddress: boolean,
+    piiURL: boolean,
+    regexNorwegianBirthIdNumber: boolean,
+    regexNorwegianPhoneNumber: boolean,
+    regexNorwegianBankAccountNumber: boolean,
+    regexOrgNum: boolean,
+    regexNorwegianPersonCarLicensePlate: boolean,
+    regexSwedishBirthIdNumber: boolean,
     isProcessing: boolean,
     message: string
 }
@@ -183,6 +200,12 @@ interface PreviewReadyAction {
 
 interface OperationSelectedAction {
     type: 'OPERATION_SELECTED';
+    id: string;
+    selected: boolean;
+}
+
+interface PiiCategorySelectedAction {
+    type: 'PII_CATEGORY_SELECTED';
     id: string;
     selected: boolean;
 }
@@ -244,6 +267,7 @@ type KnownAction =
     TextSearchTypeSelectedAction |
     ProcessDocumentAction |
     SearchTextChangedAction |
+    PiiCategorySelectedAction |
     ProcessFailedAction;
 
 // ACTION CREATORS
@@ -287,6 +311,25 @@ export const actionCreators = {
                     break;
                 case 'previewAllPages':
                     dispatch({ type: 'PREVIEWALLPAGES_SELECTED', previewAllPages: selected });
+                    break;
+                case 'piiAddress':
+                case 'piiPerson':
+                case 'piiEmail':
+                case 'piiNOIdentityNumber':
+                case 'piiDate':
+                case 'piiOrganization':
+                case 'piiPhoneNumber':
+                case 'piiSwiftCode':
+                case 'piiCreditCardNumber':
+                case 'piiIPAddress':
+                case 'piiURL':
+                case 'regexNorwegianBirthIdNumber':
+                case 'regexNorwegianPhoneNumber':
+                case 'regexNorwegianBankAccountNumber':
+                case 'regexOrgNum':
+                case 'regexNorwegianPersonCarLicensePlate':
+                case 'regexSwedishBirthIdNumber':
+                    dispatch({ type: 'PII_CATEGORY_SELECTED', id: id, selected: selected });
                     break;
             }
         }
@@ -637,8 +680,62 @@ export const actionCreators = {
                     expressions = [cmdtypRegularExpression('regex', appState.docProcess.searchText, 'i')];
                 }
                 else if (appState.docProcess.textSearchType == 'piicat') {
-                    piiCategories = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-                    regexEntities = [0, 1, 2, 3, 4, 5]
+                    piiCategories = new Array();
+                    regexEntities = new Array();
+                    var c = 0;
+                    if (appState.docProcess.piiAddress) {
+                        piiCategories[c++] = 0;
+                    }
+                    if (appState.docProcess.piiPerson) {
+                        piiCategories[c++] = 1;
+                    }
+                    if (appState.docProcess.piiEmail) {
+                        piiCategories[c++] = 2;
+                    }
+                    if (appState.docProcess.piiNOIdentityNumber) {
+                        piiCategories[c++] = 3;
+                    }
+                    if (appState.docProcess.piiDate) {
+                        piiCategories[c++] = 4;
+                    }
+                    if (appState.docProcess.piiOrganization) {
+                        piiCategories[c++] = 5;
+                    }
+                    if (appState.docProcess.piiPhoneNumber) { 
+                        piiCategories[c++] = 6;
+                    }
+                    if (appState.docProcess.piiSwiftCode) {
+                        piiCategories[c++] = 7;
+                    }
+                    if (appState.docProcess.piiCreditCardNumber) {
+                        piiCategories[c++] = 8;
+                    }
+                    if (appState.docProcess.piiIPAddress) {
+                        piiCategories[c++] = 9;
+                    }
+                    if (appState.docProcess.piiURL) {
+                        piiCategories[c++] = 10;
+                    }
+
+                    c = 0;
+                    if (appState.docProcess.regexNorwegianBirthIdNumber) {
+                        regexEntities[c++] = 0;
+                    }
+                    if (appState.docProcess.regexNorwegianPhoneNumber) {
+                        piiCategories[c++] = 1;
+                    }
+                    if (appState.docProcess.regexNorwegianBankAccountNumber) {
+                        piiCategories[c++] = 2;
+                    }
+                    if (appState.docProcess.regexOrgNum) {
+                        piiCategories[c++] = 3;
+                    }
+                    if (appState.docProcess.regexNorwegianPersonCarLicensePlate) {
+                        piiCategories[c++] = 4;
+                    }
+                    if (appState.docProcess.regexSwedishBirthIdNumber) {
+                        piiCategories[c++] = 5;
+                    }
                 }
                 else if (appState.docProcess.textSearchType == 'dataextract' && appState.docProcess.searchText.length > 0) {
                     aiQueries = [cmdtypAiQuery('query', appState.docProcess.searchText)];
@@ -722,6 +819,23 @@ const unloadedState: DocumentProcessState = {
     redactType: 'markup',
     textSearchType: 'phrase',
     searchText: '',
+    piiAddress: true,
+    piiPerson: true,
+    piiEmail: true,
+    piiNOIdentityNumber: true,
+    piiDate: false,
+    piiOrganization: false,
+    piiPhoneNumber: true,
+    piiSwiftCode: false,
+    piiCreditCardNumber: true,
+    piiIPAddress: false,
+    piiURL: false,
+    regexNorwegianBirthIdNumber: true,
+    regexNorwegianPhoneNumber: true,
+    regexNorwegianBankAccountNumber: true,
+    regexOrgNum: false,
+    regexNorwegianPersonCarLicensePlate: false,
+    regexSwedishBirthIdNumber: false,
     isProcessing: false,
     message: ''
 };
@@ -818,6 +932,30 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 autoOrientation: action.id === 'autoOrientation' ? action.selected : state.autoOrientation,
                 deskew: action.id === 'deskew' ? action.selected : state.deskew,
                 enhanceText: action.id === 'enhanceText' ? action.selected : state.enhanceText,
+                outputFilename: '',
+                downloadUrl: '',
+                message: ''
+            };
+        case 'PII_CATEGORY_SELECTED':
+            return {
+                ...state,
+                piiAddress: action.id === 'piiAddress' ? action.selected : state.piiAddress,
+                piiPerson: action.id === 'piiPerson' ? action.selected : state.piiPerson,
+                piiEmail: action.id === 'piiEmail' ? action.selected : state.piiEmail,
+                piiNOIdentityNumber: action.id === 'piiNOIdentityNumber' ? action.selected : state.piiNOIdentityNumber,
+                piiDate: action.id === 'piiDate' ? action.selected : state.piiDate,
+                piiOrganization: action.id === 'piiOrganization' ? action.selected : state.piiOrganization,
+                piiPhoneNumber: action.id === 'piiPhoneNumber' ? action.selected : state.piiPhoneNumber,
+                piiSwiftCode: action.id === 'piiSwiftCode' ? action.selected : state.piiSwiftCode,
+                piiCreditCardNumber: action.id === 'piiCreditCardNumber' ? action.selected : state.piiCreditCardNumber,
+                piiIPAddress: action.id === 'piiIPAddress' ? action.selected : state.piiIPAddress,
+                piiURL: action.id === 'piiAddress' ? action.selected : state.piiAddress,
+                regexNorwegianBirthIdNumber: action.id === 'regexNorwegianBirthIdNumber' ? action.selected : state.regexNorwegianBirthIdNumber,
+                regexNorwegianPhoneNumber: action.id === 'regexNorwegianPhoneNumber' ? action.selected : state.regexNorwegianPhoneNumber,
+                regexNorwegianBankAccountNumber: action.id === 'regexNorwegianBankAccountNumber' ? action.selected : state.regexNorwegianBankAccountNumber,
+                regexOrgNum: action.id === 'regexOrgNum' ? action.selected : state.regexOrgNum,
+                regexNorwegianPersonCarLicensePlate: action.id === 'regexNorwegianPersonCarLicensePlate' ? action.selected : state.regexNorwegianPersonCarLicensePlate,
+                regexSwedishBirthIdNumber: action.id === 'regexSwedishBirthIdNumber' ? action.selected : state.regexSwedishBirthIdNumber,
                 outputFilename: '',
                 downloadUrl: '',
                 message: ''
