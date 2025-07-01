@@ -949,7 +949,7 @@ export const reducer: Reducer<DocumentProcessState> = (state: DocumentProcessSta
                 piiSwiftCode: action.id === 'piiSwiftCode' ? action.selected : state.piiSwiftCode,
                 piiCreditCardNumber: action.id === 'piiCreditCardNumber' ? action.selected : state.piiCreditCardNumber,
                 piiIPAddress: action.id === 'piiIPAddress' ? action.selected : state.piiIPAddress,
-                piiURL: action.id === 'piiAddress' ? action.selected : state.piiAddress,
+                piiURL: action.id === 'piiURL' ? action.selected : state.piiURL,
                 regexNorwegianBirthIdNumber: action.id === 'regexNorwegianBirthIdNumber' ? action.selected : state.regexNorwegianBirthIdNumber,
                 regexNorwegianPhoneNumber: action.id === 'regexNorwegianPhoneNumber' ? action.selected : state.regexNorwegianPhoneNumber,
                 regexNorwegianBankAccountNumber: action.id === 'regexNorwegianBankAccountNumber' ? action.selected : state.regexNorwegianBankAccountNumber,
